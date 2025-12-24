@@ -31,6 +31,7 @@ from .utils import (
     replace_added_token,
     seed_everything,
 )
+from .mistral_config import DEFAULT_MODEL, EMBEDDING_MODEL
 
 
 class PromptCompressor:
@@ -44,7 +45,7 @@ class PromptCompressor:
     Chin-Yew Lin, Yuqing Yang, and Lili Qiu. arXiv preprint arXiv:2310.05736 (2023).
 
     Args:
-        model_name (str, optional): The name of the language model to be loaded. Default is "NousResearch/Llama-2-7b-hf".
+        model_name (str, optional): The name of the language model to be loaded. Default is "mistralai/Mistral-7B-v0.3".
         device_map (str, optional): The device to load the model onto, e.g., "cuda" for GPU. Default is "cuda".
         model_config (dict, optional): A dictionary containing the configuration parameters for the model. Default is an empty dictionary.
         open_api_config (dict, optional): A dictionary containing configuration for openai APIs that may be used in conjunction with the model. Default is an empty dictionary.
@@ -70,7 +71,7 @@ class PromptCompressor:
 
     def __init__(
         self,
-        model_name: str = "NousResearch/Llama-2-7b-hf",
+        model_name: str = DEFAULT_MODEL,
         device_map: str = "cuda",
         model_config: dict = {},
         open_api_config: dict = {},
@@ -2029,6 +2030,22 @@ class PromptCompressor:
             idx = [(ii, 0) for ii in doc_rank]
             return idx
 
+        def get_distance_mistral(corpus, query):
+            from sentence_transformers import SentenceTransformer, util
+
+            if self.retrieval_model is None or self.retrieval_model_name != rank_method:
+                self.retrieval_model = SentenceTransformer(EMBEDDING_MODEL)
+                self.retrieval_model_name = rank_method
+            doc_embeds = self.retrieval_model.encode(
+                ["query: " + i for i in corpus], normalize_embeddings=True
+            )
+            query_embed = self.retrieval_model.encode(
+                "query: " + query, normalize_embeddings=True
+            )
+            doc_scores = -util.dot_score(doc_embeds, query_embed).cpu().numpy().reshape(-1)
+            idx = [(ii, 0) for ii in np.argsort(doc_scores)]
+            return idx
+
         def get_distance_longllmlingua(corpus, query):
             context_ppl = [
                 self.get_condition_ppl(
@@ -2067,6 +2084,8 @@ class PromptCompressor:
             method = get_distance_voyageai
         elif rank_method == "cohere":
             method = get_distance_cohere
+        elif rank_method == "mistral":
+            method = get_distance_mistral
         return method(context, question)
 
     def segment_structured_context(

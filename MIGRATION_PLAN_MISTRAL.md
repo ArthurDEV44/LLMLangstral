@@ -151,7 +151,7 @@ MISTRAL_MODELS = {
 }
 ```
 
-### Phase 2: Migration Core (Semaine 3-4)
+### Phase 2: Migration Core (Semaine 3-4) ✅ COMPLÉTÉE
 
 #### 2.1 Modifier `prompt_compressor.py`
 
