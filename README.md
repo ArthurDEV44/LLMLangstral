@@ -33,7 +33,7 @@ https://github.com/microsoft/LLMLingua/assets/30883354/eb0ea70d-6d4c-4aa7-8977-6
 
 ## TL;DR
 
-LLMLingua utilizes a compact, well-trained language model (e.g., GPT2-small, LLaMA-7B) to identify and remove non-essential tokens in prompts. This approach enables efficient inference with large language models (LLMs), achieving up to 20x compression with minimal performance loss.
+LLMLingua utilizes a compact, well-trained language model (e.g., Mistral-7B, Ministral-3B) to identify and remove non-essential tokens in prompts. This approach enables efficient inference with large language models (LLMs), achieving up to 20x compression with minimal performance loss.
 
 - [LLMLingua: Compressing Prompts for Accelerated Inference of Large Language Models](https://aclanthology.org/2023.emnlp-main.825/) (EMNLP 2023)<br>
   _Huiqiang Jiang, Qianhui Wu, Chin-Yew Lin, Yuqing Yang and Lili Qiu_
@@ -174,12 +174,12 @@ compressed_prompt = llm_lingua.compress_prompt(prompt, instruction="", question=
 #  'ratio': '11.2x',
 #  'saving': ', Saving $0.1 in GPT-4.'}
 
-## Or use the phi-2 model,
-llm_lingua = PromptCompressor("microsoft/phi-2")
+## Or use the smaller Ministral-3B model,
+llm_lingua = PromptCompressor("mistralai/Ministral-3-3B-Instruct-2512")
 
-## Or use the quantation model, like TheBloke/Llama-2-7b-Chat-GPTQ, only need <8GB GPU memory.
+## Or use the quantized model, like TheBloke/Mistral-7B-Instruct-v0.2-GPTQ, only need <8GB GPU memory.
 ## Before that, you need to pip install optimum auto-gptq
-llm_lingua = PromptCompressor("TheBloke/Llama-2-7b-Chat-GPTQ", model_config={"revision": "main"})
+llm_lingua = PromptCompressor("TheBloke/Mistral-7B-Instruct-v0.2-GPTQ", model_config={"revision": "main"})
 ```
 
 To try **LongLLMLingua** in your scenarios, you can use

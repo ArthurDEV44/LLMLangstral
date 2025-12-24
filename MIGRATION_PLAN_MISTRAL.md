@@ -234,7 +234,7 @@ model = MistralForTokenClassification.from_pretrained(
 
 **Base**: Utiliser `SecurityLingua/securitylingua-jailbreak-pairs` dataset
 
-### Phase 4: Tests & Documentation (Semaine 9-10)
+### Phase 4: Tests & Documentation (Semaine 9-10) ✅ COMPLÉTÉE
 
 #### 4.1 Mise à jour des tests
 

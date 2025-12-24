@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 LLMLingua is a prompt compression library from Microsoft that reduces prompt length while maintaining semantic information for LLMs. It achieves up to 20x compression with minimal performance loss.
 
 **Key Variants:**
-- **LLMLingua** - Base compression using small language models (GPT-2, LLaMA)
+- **LLMLingua** - Base compression using small language models (Mistral-7B, Ministral-3B)
 - **LongLLMLingua** - Handles long contexts, mitigates "lost in the middle" issue
 - **LLMLingua-2** - Fast distilled model (3x-6x faster), uses BERT/XLM-RoBERTa
 - **SecurityLingua** - Jailbreak attack detection via security-aware compression
@@ -99,7 +99,9 @@ Use XML-style tags for per-section compression control:
 
 ## Model Options
 
-- Default: `NousResearch/Llama-2-7b-hf`
-- Smaller: `microsoft/phi-2`
+- Default: `mistralai/Mistral-7B-v0.3`
+- Smaller: `mistralai/Ministral-3-3B-Instruct-2512`
+- Medium: `mistralai/Ministral-3-8B-Instruct-2512`
 - LLMLingua-2: `microsoft/llmlingua-2-xlm-roberta-large-meetingbank`
-- Quantized (< 8GB GPU): `TheBloke/Llama-2-7b-Chat-GPTQ`
+- Quantized (< 8GB GPU): `TheBloke/Mistral-7B-Instruct-v0.2-GPTQ`
+- Embedding: `intfloat/e5-mistral-7b-instruct`

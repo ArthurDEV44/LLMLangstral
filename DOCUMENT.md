@@ -23,12 +23,12 @@ compressed_prompt = llm_lingua.compress_prompt(prompt, instruction="", question=
 #  'ratio': '11.2x',
 #  'saving': ', Saving $0.1 in GPT-4.'}
 
-## Or use the phi-2 model,
-llm_lingua = PromptCompressor("microsoft/phi-2")
+## Or use the smaller Ministral-3B model,
+llm_lingua = PromptCompressor("mistralai/Ministral-3-3B-Instruct-2512")
 
-## Or use the quantation model, like TheBloke/Llama-2-7b-Chat-GPTQ, only need <8GB GPU memory.
+## Or use the quantized model, like TheBloke/Mistral-7B-Instruct-v0.2-GPTQ, only need <8GB GPU memory.
 ## Before that, you need to pip install optimum auto-gptq
-llm_lingua = PromptCompressor("TheBloke/Llama-2-7b-Chat-GPTQ", model_config={"revision": "main"})
+llm_lingua = PromptCompressor("TheBloke/Mistral-7B-Instruct-v0.2-GPTQ", model_config={"revision": "main"})
 ```
 
 To try **LongLLMLingua** in your scenarios, you can use
@@ -73,19 +73,17 @@ llm_lingua = PromptCompressor(
 
 ### Utilizing Small Models
 
-### Using phi-2
+### Using Ministral-3B
 
-Thanks to the efforts of the community, phi-2 is now available for use in LLMLingua.
-
-Before using it, please update your transformers to the GitHub version by running `pip install -U git+https://github.com/huggingface/transformers.git`.
+For resource-constrained environments, Ministral-3B offers excellent compression performance with minimal memory requirements.
 
 ```python
-llm_lingua = PromptCompressor("microsoft/phi-2")
+llm_lingua = PromptCompressor("mistralai/Ministral-3-3B-Instruct-2512")
 ```
 
 ### Quantized Models
 
-(Long)LLMLingua supports the use of quantized small models such as `TheBloke/Llama-2-7b-Chat-GPTQ`, which require less than 8GB of GPU memory.
+(Long)LLMLingua supports the use of quantized small models such as `TheBloke/Mistral-7B-Instruct-v0.2-GPTQ`, which require less than 8GB of GPU memory.
 
 To begin, ensure you install the necessary packages with:
 
@@ -98,7 +96,7 @@ Then, initialize your model as follows:
 ```python
 from llmlingua import PromptCompressor
 
-llm_lingua = PromptCompressor("TheBloke/Llama-2-7b-Chat-GPTQ", model_config={"revision": "main"})
+llm_lingua = PromptCompressor("TheBloke/Mistral-7B-Instruct-v0.2-GPTQ", model_config={"revision": "main"})
 ```
 
 ### Structured Prompt Compression
@@ -266,7 +264,7 @@ Initialize **LLMLingua**, **LongLLMLingua**, and **LLMLingua-2** with the follow
 from llmlingua import PromptCompressor
 
 llm_lingua = PromptCompressor(
-    model_name="NousResearch/Llama-2-7b-hf", # Default model, use "microsoft/llmlingua-2-xlm-roberta-large-meetingbank" or "microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank" for LLMLingua-2
+    model_name="mistralai/Mistral-7B-v0.3", # Default model, use "microsoft/llmlingua-2-xlm-roberta-large-meetingbank" or "microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank" for LLMLingua-2
     device_map="cuda",  # Device environment (e.g., 'cuda', 'cpu', 'mps')
     model_config={},  # Configuration for the Huggingface model
     open_api_config={},  # Configuration for OpenAI Embedding
@@ -276,7 +274,7 @@ llm_lingua = PromptCompressor(
 
 #### Parameters
 
-- **model_name** (str): Name of the small language model from Huggingface, use "microsoft/llmlingua-2-xlm-roberta-large-meetingbank" or "microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank" for LLMLingua-2. Defaults to "NousResearch/Llama-2-7b-hf".
+- **model_name** (str): Name of the small language model from Huggingface, use "microsoft/llmlingua-2-xlm-roberta-large-meetingbank" or "microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank" for LLMLingua-2. Defaults to "mistralai/Mistral-7B-v0.3".
 - **device_map** (str): The computing environment. Options include 'cuda', 'cpu', 'mps', 'balanced', 'balanced_low_0', 'auto'. Default is 'cuda'.
 - **model_config** (dict, optional): Configuration for the Huggingface model. Defaults to {}.
 - **open_api_config** (dict, optional): Configuration for OpenAI Embedding in coarse-level prompt compression. Defaults to {}.
