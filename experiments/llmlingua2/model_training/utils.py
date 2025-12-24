@@ -35,6 +35,14 @@ class TokenClfDataset(Dataset):
             self.unk_token = "<unk>"
             self.pad_token = "<pad>"
             self.mask_token = "<mask>"
+        elif "mistral" in model_name.lower() or "ministral" in model_name.lower():
+            self.bos_token = "<s>"
+            self.eos_token = "</s>"
+            self.sep_token = "</s>"
+            self.cls_token = "<s>"
+            self.unk_token = "<unk>"
+            self.pad_token = "</s>"  # Mistral uses eos as pad
+            self.mask_token = None
         else:
             raise NotImplementedError()
 

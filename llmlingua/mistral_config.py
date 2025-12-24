@@ -12,11 +12,14 @@ MISTRAL_MODELS = {
     "embedding": "intfloat/e5-mistral-7b-instruct",
 }
 
-# Modèles LLMLingua-2 (à entraîner - Phase 3)
+# Modèles LLMLingua-2 Mistral (noms de destination après entraînement)
 MISTRAL_LINGUA2_MODELS = {
-    "large": None,  # À créer: mistralai/mistral-lingua-2-large
-    "small": None,  # À créer: mistralai/mistral-lingua-2-small
+    "large": "mistralai/mistral-lingua-2-7b-meetingbank",   # À entraîner
+    "small": "mistralai/mistral-lingua-2-3b-meetingbank",   # À entraîner
 }
+
+# Modèle de base pour l'entraînement token classification
+TRAINING_BASE_MODEL = "mistralai/Ministral-3-3B-Instruct-2512"
 
 # Alias pour migration progressive
 DEFAULT_MODEL = MISTRAL_MODELS["default"]

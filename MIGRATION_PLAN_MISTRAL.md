@@ -200,7 +200,7 @@ elif rank_method == "mistral":
     # ... implémentation similaire à sentbert
 ```
 
-### Phase 3: Entraînement Modèles (Semaine 5-8)
+### Phase 3: Entraînement Modèles (Semaine 5-8) ✅ COMPLÉTÉE
 
 #### 3.1 Entraîner MistralLingua-2
 

@@ -37,6 +37,14 @@ class TokenClfDataset(Dataset):
             self.unk_token = "<unk>"
             self.pad_token = "<pad>"
             self.mask_token = "<mask>"
+        elif "mistral" in model_name.lower() or "ministral" in model_name.lower():
+            self.bos_token = "<s>"
+            self.eos_token = "</s>"
+            self.sep_token = "</s>"
+            self.cls_token = "<s>"
+            self.unk_token = "<unk>"
+            self.pad_token = "</s>"  # Mistral uses eos as pad
+            self.mask_token = None
         else:
             raise NotImplementedError()
 
@@ -97,6 +105,15 @@ def is_begin_of_new_word(token, model_name, force_tokens, token_map):
         ):
             return True
         return token.startswith("▁")
+    elif "mistral" in model_name.lower() or "ministral" in model_name.lower():
+        if (
+            token in string.punctuation
+            or token in force_tokens
+            or token in set(token_map.values())
+        ):
+            return True
+        # Mistral BPE: tokens starting with ▁ or space = new word
+        return token.startswith("▁") or token.startswith(" ")
     else:
         raise NotImplementedError()
 
@@ -116,6 +133,8 @@ def get_pure_token(token, model_name):
             or 'slingua' in model_name.lower() \
             or 'securitylingua' in model_name.lower():
         return token.lstrip("▁")
+    elif "mistral" in model_name.lower() or "ministral" in model_name.lower():
+        return token.lstrip("▁").lstrip(" ")
     else:
         raise NotImplementedError()
 
