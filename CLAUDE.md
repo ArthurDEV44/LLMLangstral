@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-LLMLingua is a prompt compression library from Microsoft that reduces prompt length while maintaining semantic information for LLMs. It achieves up to 20x compression with minimal performance loss.
+LLMLangstral is a French fork of Microsoft's LLMLingua prompt compression library, migrated to use Mistral AI models. It reduces prompt length while maintaining semantic information for LLMs, achieving up to 20x compression with minimal performance loss.
 
 **Key Variants:**
-- **LLMLingua** - Base compression using small language models (Mistral-7B, Ministral-3B)
-- **LongLLMLingua** - Handles long contexts, mitigates "lost in the middle" issue
-- **LLMLingua-2** - Fast distilled model (3x-6x faster), uses BERT/XLM-RoBERTa
+- **LLMLangstral** - Base compression using Mistral models (Mistral-7B, Ministral-3B)
+- **LongLLMLangstral** - Handles long contexts, mitigates "lost in the middle" issue
+- **LLMLangstral-2** - Fast distilled model (3x-6x faster), uses XLM-RoBERTa (no Mistral equivalent exists)
 - **SecurityLingua** - Jailbreak attack detection via security-aware compression
 
 ## Common Commands
@@ -24,32 +24,32 @@ make test
 pytest -n auto --dist=loadfile -s -v ./tests/
 
 # Run a single test file
-pytest tests/test_llmlingua.py -v
+pytest tests/test_llmlangstral.py -v
 
 # Run a specific test
-pytest tests/test_llmlingua.py::LLMLinguaTester::test_compress_prompt -v
+pytest tests/test_llmlangstral.py::LLMLangstralTester::test_compress_prompt -v
 
 # Code formatting and linting
 make style
 # or individually:
-black llmlingua tests
-isort -rc llmlingua tests
-flake8 llmlingua tests
+black llmlangstral tests
+isort llmlangstral tests
+flake8 llmlangstral tests
 ```
 
 ## Architecture
 
 ### Core Entry Point
-All compression methods are accessed through `PromptCompressor` class in `llmlingua/prompt_compressor.py`:
+All compression methods are accessed through `PromptCompressor` class in `llmlangstral/prompt_compressor.py`:
 
 ```python
-from llmlingua import PromptCompressor
+from llmlangstral import PromptCompressor
 
-# LLMLingua (default)
+# LLMLangstral (default)
 compressor = PromptCompressor()
 result = compressor.compress_prompt(prompt, instruction="", question="", target_token=200)
 
-# LLMLingua-2
+# LLMLangstral-2
 compressor = PromptCompressor(
     model_name="microsoft/llmlingua-2-xlm-roberta-large-meetingbank",
     use_llmlingua2=True
@@ -65,12 +65,12 @@ compressor = PromptCompressor(
 
 ### Key Compression Methods
 - `compress_prompt()` - Main compression (all variants)
-- `compress_prompt_llmlingua2()` - LLMLingua-2 specific
+- `compress_prompt_llmlingua2()` - LLMLangstral-2 specific
 - `structured_compress_prompt()` - XML tag-based granular control
 - `compress_json()` - JSON-specific with per-field config
 
 ### Prompt Structure Concept
-LLMLingua divides prompts into components with different compression sensitivity:
+LLMLangstral divides prompts into components with different compression sensitivity:
 - **Instruction** (HIGH sensitivity) - Task description, placed first
 - **Context** (LOW sensitivity) - Documents, examples, demonstrations
 - **Question** (HIGH sensitivity) - User query, placed last
@@ -86,22 +86,27 @@ Use XML-style tags for per-section compression control:
 
 - Python 3.8+
 - Black: line-length=88
-- isort: profile="black", known_first_party=["llmlingua"]
+- isort: profile="black", known_first_party=["llmlangstral"]
 - Flake8: max-line-length=119
 
 ## Directory Structure
 
-- `llmlingua/` - Main package with `PromptCompressor` class
-- `tests/` - Unit tests (test_llmlingua.py, test_llmlingua2.py, test_longllmlingua.py)
+- `llmlangstral/` - Main package with `PromptCompressor` class
+- `llmlangstral/mistral_config.py` - Centralized Mistral model registry
+- `tests/` - Unit tests (test_llmlangstral.py, test_llmlangstral2.py, test_longllmlangstral.py, test_mistral.py)
 - `examples/` - Jupyter notebooks (RAG, CoT, Code, OnlineMeeting)
-- `experiments/llmlingua2/` - LLMLingua-2 training pipeline
+- `experiments/llmlangstral2/` - LLMLangstral-2 training pipeline (data_collection, model_training, evaluation)
 - `experiments/securitylingua/` - SecurityLingua training
 
 ## Model Options
 
+Models are defined in `llmlangstral/mistral_config.py`:
+
 - Default: `mistralai/Mistral-7B-v0.3`
-- Smaller: `mistralai/Ministral-3-3B-Instruct-2512`
+- Small: `mistralai/Ministral-3-3B-Instruct-2512`
 - Medium: `mistralai/Ministral-3-8B-Instruct-2512`
-- LLMLingua-2: `microsoft/llmlingua-2-xlm-roberta-large-meetingbank`
+- Large: `mistralai/Mistral-Large-3`
 - Quantized (< 8GB GPU): `TheBloke/Mistral-7B-Instruct-v0.2-GPTQ`
 - Embedding: `intfloat/e5-mistral-7b-instruct`
+- LLMLangstral-2: `microsoft/llmlingua-2-xlm-roberta-large-meetingbank` (XLM-RoBERTa, not Mistral)
+- CI Testing: `openaccess-ai-collective/tiny-mistral` (~1M params, Mistral architecture)

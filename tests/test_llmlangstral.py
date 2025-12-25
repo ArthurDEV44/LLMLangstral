@@ -3,13 +3,13 @@
 
 import unittest
 
-from llmlingua import PromptCompressor
-from llmlingua.mistral_config import TEST_MODEL
+from llmlangstral import PromptCompressor
+from llmlangstral.mistral_config import TEST_MODEL
 
 
-class LLMLinguaTester(unittest.TestCase):
+class LLMLangstralTester(unittest.TestCase):
     """
-    End2end Test for LLMLingua
+    End2end Test for LLMLangstral
     """
 
     GSM8K_PROMPT = "Question: Angelo and Melanie want to plan how many hours over the next week they should study together for their test next week. They have 2 chapters of their textbook to study and 4 worksheets to memorize. They figure out that they should dedicate 3 hours to each chapter of their textbook and 1.5 hours for each worksheet. If they plan to study no more than 4 hours each day, how many days should they plan to study total over the next week if they take a 10-minute break every hour, include 3 10-minute snack breaks each day, and 30 minutes for lunch each day?\nLet's think step by step\nAngelo and Melanie think they should dedicate 3 hours to each of the 2 chapters, 3 hours x 2 chapters = 6 hours total.\nFor the worksheets they plan to dedicate 1.5 hours for each worksheet, 1.5 hours x 4 worksheets = 6 hours total.\nAngelo and Melanie need to start with planning 12 hours to study, at 4 hours a day, 12 / 4 = 3 days.\nHowever, they need to include time for breaks and lunch. Every hour they want to include a 10-minute break, so 12 total hours x 10 minutes = 120 extra minutes for breaks.\nThey also want to include 3 10-minute snack breaks, 3 x 10 minutes = 30 minutes.\nAnd they want to include 30 minutes for lunch each day, so 120 minutes for breaks + 30 minutes for snack breaks + 30 minutes for lunch = 180 minutes, or 180 / 60 minutes per hour = 3 extra hours.\nSo Angelo and Melanie want to plan 12 hours to study + 3 hours of breaks = 15 hours total.\nThey want to study no more than 4 hours each day, 15 hours / 4 hours each day = 3.75\nThey will need to plan to study 4 days to allow for all the time they need.\nThe answer is 4\n\nQuestion: You can buy 4 apples or 1 watermelon for the same price. You bought 36 fruits evenly split between oranges, apples and watermelons, and the price of 1 orange is $0.50. How much does 1 apple cost if your total bill was $66?\nLet's think step by step\nIf 36 fruits were evenly split between 3 types of fruits, then I bought 36/3 = 12 units of each fruit\nIf 1 orange costs $0.50 then 12 oranges will cost $0.50 * 12 = $6\nIf my total bill was $66 and I spent $6 on oranges then I spent $66 - $6 = $60 on the other 2 fruit types.\nAssuming the price of watermelon is W, and knowing that you can buy 4 apples for the same price and that the price of one apple is A, then 1W=4A\nIf we know we bought 12 watermelons and 12 apples for $60, then we know that $60 = 12W + 12A\nKnowing that 1W=4A, then we can convert the above to $60 = 12(4A) + 12A\n$60 = 48A + 12A\n$60 = 60A\nThen we know the price of one apple (A) is $60/60= $1\nThe answer is 1"
@@ -59,18 +59,18 @@ class LLMLinguaTester(unittest.TestCase):
     COMPRESSED_MULTIPLE_STRUCTURED_CONTEXT_PROMPT = '\n    {\n        "id": "987654",\n        "name": "John Doe",\n        "isActive": "true",\n        "biography": " Doe, born in York in a renowned engineer over the field John from and has worked with several has a for developing has to numerous avid and speaker at, his on and the. In his enjoys, reading fiction and playing piano.",\n        "employmentHistory": [\n            {\n            "company": "TechCorp",\n            "role": "Senior",\n            "description": " John was for of engineers and of scalable He in the of cloud technologies, significantly the of their digital operations."\n            },\n            {\n            "company": "Innovatech",\n            "role": "Lead",\n            "description": "In John on developingedge AI and implementing learning for various He was developing a analytics that the\'s to datadriven making."\n            }\n        ],\n        "skills": ",,, AI Development"\n    }\n\nSpeaker 4: you. And we do the for content? Items I are 11,,, and, believe.\nSpeaker 0: a communication from on Price to increase the fund the City Manager a the the is Councilman Super. the special provide the of summer.man. increase fund manager a the Jazz theman Allen, provide toa, Sew Feria, of and Item communication. from Mayor Member Mur to Ron Palmer. and Academic\nSpeaker 4: We have a promotion and a second time asman servedman Ringa and customers and they have any comments.\nSpeaker 2: Now. I had queued up to motion, but.\nSpeaker 4: Great that we have any public comment on this.\nSpeaker 5: If there any members the public that to speak on items 11,, 16 and 28 in person please sign up at the podium in Zoom. Please use the raise hand feature or dial star nine. Seen on the concludes public comment\nSpeaker 4:. Please to a\nSpeaker 0:woman\nSpeaker 2:\nSpeaker 0:woman.woman\nSpeaker 2:\nSpeaker 0:man,woman Mongowomanmemberman\nSpeaker 1:\nSpeaker 0: Mayor\nSpeaker 3:\nSpeaker 0: The is carried nine\nSpeaker 4: the and the the budget hearings. That\'s the first thing on the agenda. And they\'re going to try to move through that, through the council as expeditiously as possible. And so with that, let\'s continue the budget hearing, which we are doing for fire, police and parks. We\'re going to hear all of the presentations at once. And then after we go through all the presentations, we\'ll do all the all of the questions at once and then any any public comment, and we\'ll go from there.'
 
     def __init__(self, *args, **kwargs):
-        super(LLMLinguaTester, self).__init__(*args, **kwargs)
+        super(LLMLangstralTester, self).__init__(*args, **kwargs)
         try:
             import nltk
 
             nltk.download("punkt")
         except:
             print("nltk_data exits.")
-        self.llmlingua = PromptCompressor(TEST_MODEL, device_map="cpu")
+        self.compressor = PromptCompressor(TEST_MODEL, device_map="cpu")
 
     def test_general_compress_prompt(self):
         # Single Context - structural validation
-        compressed_prompt = self.llmlingua.compress_prompt(
+        compressed_prompt = self.compressor.compress_prompt(
             self.GSM8K_PROMPT.split("\n\n")[0], target_token=150
         )
         # Verify result structure
@@ -89,7 +89,7 @@ class LLMLinguaTester(unittest.TestCase):
         self.assertGreater(len(compressed_prompt["compressed_prompt"]), 0)
 
         # Multiple Context - structural validation
-        compressed_prompt = self.llmlingua.compress_prompt(
+        compressed_prompt = self.compressor.compress_prompt(
             self.GSM8K_PROMPT.split("\n\n"), target_token=150
         )
         self.assertIn("compressed_prompt", compressed_prompt)
@@ -103,14 +103,14 @@ class LLMLinguaTester(unittest.TestCase):
         # Single Structured Context - structural validation
         import json
 
-        context, _, _, _ = self.llmlingua.segment_structured_context(
+        context, _, _, _ = self.compressor.segment_structured_context(
             [self.JSON_PROMPT], 0.5
         )
         # Verify context can be parsed as JSON
         parsed = json.loads(context[0])
         self.assertIsInstance(parsed, dict)
 
-        compressed_prompt = self.llmlingua.structured_compress_prompt(
+        compressed_prompt = self.compressor.structured_compress_prompt(
             [self.JSON_PROMPT],
             rate=0.5,
             use_sentence_level_filter=True,
@@ -130,7 +130,7 @@ class LLMLinguaTester(unittest.TestCase):
         )
 
         # Multiple Structured Context - structural validation
-        compressed_prompt = self.llmlingua.structured_compress_prompt(
+        compressed_prompt = self.compressor.structured_compress_prompt(
             [self.JSON_PROMPT, self.MEETINGBANK_TRANSCRIPT_0_PROMPT],
             rate=0.5,
             use_sentence_level_filter=False,

@@ -160,13 +160,13 @@ Experiments in LLMLingua and most experiments in LongLLMLingua were conducted in
 **LLMLingua-2**:
 
 ```python
-from llmlingua import PromptCompressor
+from llmlangstral import PromptCompressor
 
-llm_lingua = PromptCompressor(
+compressor = PromptCompressor(
     model_name="microsoft/llmlingua-2-xlm-roberta-large-meetingbank",
-    use_llmlingua2=True, # Whether to use llmlingua-2
+    use_llmlingua2=True, # Whether to use llmlangstral-2
 )
-compressed_prompt = llm_lingua.compress_prompt(prompt, rate=0.33, force_tokens = ['\n', '?'])
+compressed_prompt = compressor.compress_prompt(prompt, rate=0.33, force_tokens = ['\n', '?'])
 
 ## Or use LLMLingua-2-small model
 llm_lingua = PromptCompressor(

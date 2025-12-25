@@ -1,7 +1,7 @@
 # Copyright (c) 2023 Microsoft
 # Licensed under The MIT License [see LICENSE for details]
 
-"""Configuration des modèles Mistral AI pour LLMLingstral."""
+"""Configuration des modèles Mistral AI pour LLMLangstral."""
 
 MISTRAL_MODELS = {
     "default": "mistralai/Mistral-7B-v0.3",
@@ -12,10 +12,10 @@ MISTRAL_MODELS = {
     "embedding": "intfloat/e5-mistral-7b-instruct",
 }
 
-# Note: LLMLingua-2 utilise toujours le modèle Microsoft XLM-RoBERTa car
+# Note: LLMLangstral-2 utilise toujours le modèle Microsoft XLM-RoBERTa car
 # aucun modèle Mistral équivalent pour token classification n'existe.
 # Voir: microsoft/llmlingua-2-xlm-roberta-large-meetingbank
-LLMLINGUA2_MODEL = "microsoft/llmlingua-2-xlm-roberta-large-meetingbank"
+LLMLANGSTRAL2_MODEL = "microsoft/llmlingua-2-xlm-roberta-large-meetingbank"
 
 # Modèle léger pour tests CI (architecture Mistral, ~1M params)
 TEST_MODEL = "openaccess-ai-collective/tiny-mistral"

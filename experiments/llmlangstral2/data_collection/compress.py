@@ -59,8 +59,8 @@ if args.compressor == "gpt4":
     compressor = PromptCompressor(
         model_name=args.model_name, system_prompt=system_prompt, user_prompt=user_prompt
     )
-elif args.compressor == "llmlingua" or args.compressor == "longllmlingua":
-    from llmlingua import PromptCompressor
+elif args.compressor == "llmlangstral" or args.compressor == "longllmlangstral":
+    from llmlangstral import PromptCompressor
 
     compressor = PromptCompressor()
 elif args.compressor == "sc":

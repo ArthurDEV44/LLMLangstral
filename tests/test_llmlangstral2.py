@@ -3,12 +3,12 @@
 
 import unittest
 
-from llmlingua import PromptCompressor
+from llmlangstral import PromptCompressor
 
 
-class LLMLingua2Tester(unittest.TestCase):
+class LLMLangstral2Tester(unittest.TestCase):
     """
-    End2end Test for LLMLingua-2
+    End2end Test for LLMLangstral-2
     """
 
     PROMPT = "John: So, um, I've been thinking about the project, you know, and I believe we need to, uh, make some changes. I mean, we want the project to succeed, right? So, like, I think we should consider maybe revising the timeline.\n\nSarah: I totally agree, John. I mean, we have to be realistic, you know. The timeline is, like, too tight. You know what I mean? We should definitely extend it."
@@ -39,15 +39,15 @@ class LLMLingua2Tester(unittest.TestCase):
     LONGBENCH_1000TOKENS_COMPRESSED_MULTIPLE_CONTEXT_PROMPT = "\n 新闻内容 第38届世界贸易中心年会及经贸洽谈会\n 安那州首府新奥尔良召开。\n 易服务管理总局、新奥尔良世贸中心共同举办\n 家和地区的经贸代表团约600余人与会。 天津贸促会与天津世贸中心协\n 会将共同组织天津经贸代表团赴美国参加“世贸中心2007年年会及经贸\n 洽谈会”。\n 联系人:王岭 刘鹏\n 电话:022-2520231725202123\n 传真:022-25201975\n 地址:天津经济 技术开发区宏达街19号A区2楼\n类别：商业、外贸、海关\n\n\n 新闻内容\n 海口“接管”省 特殊教育 学校\n 创建于1989年的海南省特殊教育 学校原属省教育 厅直属正处级事业单位,为海南省惟一一所全日寄宿的公立特殊教育 学校。\n教育 学校之后,将继续面向全省招收视障、听障两类适龄儿童教育 布局调整教育。\n类别：教育\n\n\n 中国又一学者当选瑞典皇家工程科学院外籍院士\n 新华社北京8月20日电 北京航空航天大学中国循环经济 研究中心主任、北京循环经济 促进会会长吴季松教授,日前被瑞典皇家工程科学院全体大会选为该院外籍院士。\n 作为改革开放后首批出国访问学者之一,吴季松曾在欧洲原子能联营法国原子能委员会研究受控热核聚变,还曾任中国常驻联合国教科文组织代表团参赞衔副代表、联合国教科文组织科技部门高技术与环境顾问。 1985至1986年,主持联合国教科文组织“多学科综合研究应用于经济 发展”专题研究经济。\n:创意“知识经济 ”并将科技园区的实践介绍到中国、提出修复生态系统理论并主持制定水资源规划、创立新循环经济 学等。\n 瑞典皇家工程科学院创建于1919年,是世界上第一个工程院,现有机械工程、电机工程等学部。 目前共有院士(含外籍院士)近1100人,来自中国的外籍院士包括宋健、徐冠华等。\n类别：科学技术"
 
     def __init__(self, *args, **kwargs):
-        super(LLMLingua2Tester, self).__init__(*args, **kwargs)
-        self.llmlingua = PromptCompressor(
+        super(LLMLangstral2Tester, self).__init__(*args, **kwargs)
+        self.compressor = PromptCompressor(
             model_name="microsoft/llmlingua-2-xlm-roberta-large-meetingbank",
             device_map="cpu",
             use_llmlingua2=True,
         )
 
     def test_general_compress_prompt(self):
-        compressed_prompt = self.llmlingua.compress_prompt(
+        compressed_prompt = self.compressor.compress_prompt(
             self.PROMPT,
             rate=0.33,
             force_tokens=["\n", ".", "!", "?"],
@@ -63,7 +63,7 @@ class LLMLingua2Tester(unittest.TestCase):
         self.assertEqual(compressed_prompt["ratio"], "3.3x")
         self.assertEqual(compressed_prompt["rate"], "30.6%")
 
-        compressed_prompt = self.llmlingua.compress_prompt(
+        compressed_prompt = self.compressor.compress_prompt(
             self.PROMPT.split("\n\n"),
             target_token=40,
             use_context_level_filter=True,
@@ -81,7 +81,7 @@ class LLMLingua2Tester(unittest.TestCase):
         self.assertEqual(compressed_prompt["rate"], "34.7%")
 
         # Single Context
-        compressed_prompt = self.llmlingua.compress_prompt(
+        compressed_prompt = self.compressor.compress_prompt(
             self.GSM8K_PROMPT.split("\n\n")[0],
             target_token=170,
             force_tokens=[
@@ -109,7 +109,7 @@ class LLMLingua2Tester(unittest.TestCase):
         self.assertEqual(compressed_prompt["rate"], "48.1%")
 
         # Single Context
-        compressed_prompt = self.llmlingua.compress_prompt(
+        compressed_prompt = self.compressor.compress_prompt(
             self.MEETINGBANK_PROMPT.split("\n\n")[0],
             target_token=150,
             force_tokens=["\n", ".", "?", "!"],
@@ -126,7 +126,7 @@ class LLMLingua2Tester(unittest.TestCase):
         self.assertEqual(compressed_prompt["rate"], "33.2%")
 
         # Multiple Context
-        compressed_prompt = self.llmlingua.compress_prompt(
+        compressed_prompt = self.compressor.compress_prompt(
             self.GSM8K_PROMPT.split("\n\n"),
             target_token=150,
             use_context_level_filter=True,
@@ -144,7 +144,7 @@ class LLMLingua2Tester(unittest.TestCase):
         self.assertEqual(compressed_prompt["rate"], "22.2%")
 
         # Multiple Context
-        compressed_prompt = self.llmlingua.compress_prompt(
+        compressed_prompt = self.compressor.compress_prompt(
             self.LONGBENCH_PROMPT_LIST,
             target_token=1000,
             use_context_level_filter=True,

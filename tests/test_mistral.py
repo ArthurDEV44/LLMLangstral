@@ -2,7 +2,7 @@
 # Licensed under The MIT License [see LICENSE for details]
 
 """
-Functional tests for Mistral models in LLMLingstral.
+Functional tests for Mistral models in LLMLangstral.
 
 These tests validate that Mistral models work correctly with the
 PromptCompressor class. Unlike other test files, these tests do NOT
@@ -12,8 +12,8 @@ compressions), but instead verify functional behavior.
 
 import unittest
 
-from llmlingua import PromptCompressor
-from llmlingua.mistral_config import (
+from llmlangstral import PromptCompressor
+from llmlangstral.mistral_config import (
     DEFAULT_MODEL,
     EMBEDDING_MODEL,
     MISTRAL_MODELS,
@@ -144,8 +144,8 @@ class TestMistralModelNames(unittest.TestCase):
         """Test that default initialization uses Mistral model."""
         # This test just verifies the import works - actual model loading
         # is tested in TestMistralCompressor
-        from llmlingua import PromptCompressor
-        from llmlingua.mistral_config import DEFAULT_MODEL
+        from llmlangstral import PromptCompressor
+        from llmlangstral.mistral_config import DEFAULT_MODEL
 
         # Verify the default model constant is correct
         self.assertEqual(DEFAULT_MODEL, "mistralai/Mistral-7B-v0.3")

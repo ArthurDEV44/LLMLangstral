@@ -9,7 +9,7 @@ import time
 
 from tqdm import tqdm
 
-from llmlingua.prompt_compressor import PromptCompressor
+from llmlangstral.prompt_compressor import PromptCompressor
 
 parser = argparse.ArgumentParser(description="compress any prompt.")
 

@@ -1,7 +1,7 @@
 .PHONY: install style test
 
-PYTHON := python
-CHECK_DIRS := llmlingua tests
+PYTHON := python3
+CHECK_DIRS := llmlangstral tests
 
 install:
 	@${PYTHON} setup.py bdist_wheel
@@ -9,7 +9,7 @@ install:
 
 style:
 	black $(CHECK_DIRS)
-	isort -rc $(CHECK_DIRS)
+	isort $(CHECK_DIRS)
 	flake8 $(CHECK_DIRS)
 
 test:

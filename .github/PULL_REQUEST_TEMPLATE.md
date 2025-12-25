@@ -33,7 +33,7 @@ members/contributors who may be interested in your PR.
  If you know how to use git blame, that is the easiest way, otherwise, here is a rough guide of **who to tag**.
  Please tag fewer than 3 people.
 
-LLMLingua/LongLLMLingua:
+LLMLangstral/LongLLMLangstral:
 
 - general: @iofu728, @QianhuiWu, @XufangLuo, and @mydmdm
 - new feature: @SiyunZhao

@@ -12,7 +12,7 @@
 With **LLMLingua**, you can easily compress your prompts. Here’s how you can do it:
 
 ```python
-from llmlingua import PromptCompressor
+from llmlangstral import PromptCompressor
 
 llm_lingua = PromptCompressor()
 compressed_prompt = llm_lingua.compress_prompt(prompt, instruction="", question="", target_token=200)
@@ -34,7 +34,7 @@ llm_lingua = PromptCompressor("TheBloke/Mistral-7B-Instruct-v0.2-GPTQ", model_co
 To try **LongLLMLingua** in your scenarios, you can use
 
 ```python
-from llmlingua import PromptCompressor
+from llmlangstral import PromptCompressor
 
 llm_lingua = PromptCompressor()
 compressed_prompt = llm_lingua.compress_prompt(
@@ -54,7 +54,7 @@ compressed_prompt = llm_lingua.compress_prompt(
 To try **LLMLingua-2** in your scenarios, you can use
 
 ```python
-from llmlingua import PromptCompressor
+from llmlangstral import PromptCompressor
 
 llm_lingua = PromptCompressor(
     model_name="microsoft/llmlingua-2-xlm-roberta-large-meetingbank",
@@ -94,7 +94,7 @@ pip install optimum auto-gptq
 Then, initialize your model as follows:
 
 ```python
-from llmlingua import PromptCompressor
+from llmlangstral import PromptCompressor
 
 llm_lingua = PromptCompressor("TheBloke/Mistral-7B-Instruct-v0.2-GPTQ", model_config={"revision": "main"})
 ```
@@ -261,7 +261,7 @@ python train_roberta.py --data_path <kept data save path>
 Initialize **LLMLingua**, **LongLLMLingua**, and **LLMLingua-2** with the following parameters:
 
 ```python
-from llmlingua import PromptCompressor
+from llmlangstral import PromptCompressor
 
 llm_lingua = PromptCompressor(
     model_name="mistralai/Mistral-7B-v0.3", # Default model, use "microsoft/llmlingua-2-xlm-roberta-large-meetingbank" or "microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank" for LLMLingua-2

@@ -1,5 +1,9 @@
 # LLMLangstral
 
+<p align="center">
+  <img src="images/LLMLangstral_logo.png" alt="LLMLangstral Logo" width="100%">
+</p>
+
 **Réduisez vos coûts d'API jusqu'à 20x en compressant intelligemment vos prompts.**
 
 ---
@@ -49,17 +53,17 @@ Tout se passe localement sur votre machine. Aucune donnée n'est envoyée à un 
 
 LLMLangstral propose plusieurs méthodes de compression selon vos besoins :
 
-### LLMLingua
+### LLMLangstral
 
 La méthode de base. Elle utilise la perplexité (une mesure de "surprise" du modèle) pour identifier les tokens importants. Efficace pour la plupart des cas d'usage.
 
-### LongLLMLingua
+### LongLLMLangstral
 
 Optimisée pour les longs documents. Elle résout le problème du "lost in the middle" où les LLM ont tendance à oublier les informations situées au centre d'un long texte. Particulièrement utile pour le RAG (Retrieval-Augmented Generation).
 
-### LLMLingua-2
+### LLMLangstral-2
 
-La version la plus rapide. Elle utilise un modèle de classification de tokens (basé sur XLM-RoBERTa) entraîné par distillation depuis GPT-4. Résultat : 3 à 6 fois plus rapide que LLMLingua standard.
+La version la plus rapide. Elle utilise un modèle de classification de tokens (basé sur XLM-RoBERTa) entraîné par distillation depuis GPT-4. Résultat : 3 à 6 fois plus rapide que LLMLangstral standard.
 
 ### SecurityLingua
 
@@ -101,7 +105,7 @@ LLMLangstral s'appuie principalement sur des modèles Mistral AI :
 | Compression légère | Ministral 3B | 3 milliards de paramètres |
 | Ressources limitées | Mistral 7B GPTQ | Version quantifiée, moins de 8 Go de VRAM |
 | Ranking de documents | E5-Mistral 7B | Embeddings pour le tri par pertinence |
-| Compression rapide | XLM-RoBERTa | Classification de tokens (LLMLingua-2) |
+| Compression rapide | XLM-RoBERTa | Classification de tokens (LLMLangstral-2) |
 
 ---
 
@@ -115,7 +119,7 @@ LLMLangstral s'appuie principalement sur des modèles Mistral AI :
 
 **Flexible** — Contrôle fin du taux de compression par section du prompt.
 
-**Rapide** — LLMLingua-2 traite les prompts en millisecondes.
+**Rapide** — LLMLangstral-2 traite les prompts en millisecondes.
 
 ---
 
@@ -123,7 +127,7 @@ LLMLangstral s'appuie principalement sur des modèles Mistral AI :
 
 - La compression peut occasionnellement supprimer des informations pertinentes
 - Les modèles de compression nécessitent un GPU pour des performances optimales (CPU possible mais plus lent)
-- LLMLingua-2 (la version rapide) reste basée sur XLM-RoBERTa, pas sur Mistral
+- LLMLangstral-2 (la version rapide) reste basée sur XLM-RoBERTa, pas sur Mistral
 
 ---
 

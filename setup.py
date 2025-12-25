@@ -19,7 +19,7 @@ from setuptools import find_packages, setup
 # version.py defines the VERSION and VERSION_SHORT variables.
 # We use exec here so we don't import allennlp whilst setting up.
 VERSION = {}  # type: ignore
-with open("llmlingua/version.py", "r") as version_file:
+with open("llmlangstral/version.py", "r") as version_file:
     exec(version_file.read(), VERSION)
 
 INSTALL_REQUIRES = [
@@ -43,16 +43,16 @@ QUANLITY_REQUIRES = [
 DEV_REQUIRES = INSTALL_REQUIRES + QUANLITY_REQUIRES
 
 setup(
-    name="llmlingua",
+    name="llmlangstral",
     version=VERSION["VERSION"],
-    author="The LLMLingua team",
-    author_email="hjiang@microsoft.com",
-    description="To speed up LLMs' inference and enhance LLM's perceive of key information, compress the prompt and KV-Cache, which achieves up to 20x compression with minimal performance loss.",
+    author="The LLMLangstral team",
+    author_email="",
+    description="Compress prompts up to 20x while preserving semantic information for LLMs. Fork of Microsoft LLMLingua with Mistral AI models.",
     long_description=open("README.md", encoding="utf8").read(),
     long_description_content_type="text/markdown",
-    keywords="Prompt Compression, LLMs, Inference Acceleration, Black-box LLMs, Efficient LLMs",
+    keywords="Prompt Compression, LLMs, Inference Acceleration, Mistral AI, Efficient LLMs",
     license="MIT License",
-    url="https://github.com/microsoft/LLMLingua",
+    url="https://github.com/sauron/LLMLangstral",
     classifiers=[
         "Intended Audience :: Science/Research",
         "Development Status :: 3 - Alpha",
