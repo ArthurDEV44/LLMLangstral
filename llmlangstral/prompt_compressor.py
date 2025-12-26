@@ -15,14 +15,11 @@ import tiktoken
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-from transformers import (
-    AutoConfig,
-    AutoModelForCausalLM,
-    AutoModelForTokenClassification,
-    AutoTokenizer,
-)
 from transformers.cache_utils import DynamicCache
 
+from .core import ModelManager
+from .mistral_config import DEFAULT_MODEL, EMBEDDING_MODEL
+from .ranking import RankingRegistry
 from .utils import (
     TokenClfDataset,
     get_pure_token,
@@ -30,10 +27,7 @@ from .utils import (
     process_structured_json_data,
     remove_consecutive_commas,
     replace_added_token,
-    seed_everything,
 )
-from .mistral_config import DEFAULT_MODEL, EMBEDDING_MODEL
-from .ranking import RankingRegistry
 
 
 class PromptCompressor:
@@ -91,79 +85,58 @@ class PromptCompressor:
         self.prefix_bos_num = 100
         self.oai_tokenizer = tiktoken.encoding_for_model("gpt-3.5-turbo")
 
-        self.load_model(model_name, device_map, model_config)
-        if use_llmlingua2 or use_slingua: # slingua use llmlingua2 backend
-            self.init_llmlingua2(**llmlingua2_config)
-
-    def init_llmlingua2(
-        self,
-        max_batch_size: int = 50,
-        max_force_token: int = 100,
-    ):
-        seed_everything(42)
-        self.max_batch_size = max_batch_size
-        self.max_seq_len = 512
-        self.max_force_token = max_force_token
-        self.special_tokens = set(
-            [
-                v
-                for k, v in self.tokenizer.special_tokens_map.items()
-                if k != "additional_special_tokens"
-            ]
-        )
-
-        self.added_tokens = [f"[NEW{i}]" for i in range(max_force_token)]
-        self.tokenizer.add_special_tokens(
-            {"additional_special_tokens": self.added_tokens}
-        )
-        self.model.resize_token_embeddings(len(self.tokenizer))
-
-    def load_model(
-        self, model_name: str, device_map: str = "cuda", model_config: dict = {}
-    ):
-        trust_remote_code = model_config.get("trust_remote_code", True)
-        if "trust_remote_code" not in model_config:
-            model_config["trust_remote_code"] = trust_remote_code
-        config = AutoConfig.from_pretrained(model_name, **model_config)
-        tokenizer = AutoTokenizer.from_pretrained(model_name, **model_config)
-        if model_config.get("pad_to_left", True):
-            tokenizer.padding_side = "left"
-            tokenizer.pad_token_id = (
-                config.pad_token_id if config.pad_token_id else tokenizer.eos_token_id
-            )
-        MODEL_CLASS = (
-            AutoModelForTokenClassification
-            if any("ForTokenClassification" in ar for ar in config.architectures)
-            else AutoModelForCausalLM
-        )
-        self.device = (
-            device_map
-            if any(key in device_map for key in ["cuda", "cpu", "mps"])
-            else "cuda"
-        )
-        if "cuda" in device_map or "cpu" in device_map:
-            model = MODEL_CLASS.from_pretrained(
-                model_name,
-                torch_dtype=model_config.pop(
-                    "torch_dtype", "auto" if device_map == "cuda" else torch.float32
-                ),
-                device_map=device_map,
-                config=config,
-                ignore_mismatched_sizes=True,
-                **model_config,
-            )
-        else:
-            model = MODEL_CLASS.from_pretrained(
-                model_name,
-                device_map=device_map,
-                torch_dtype=model_config.pop("torch_dtype", "auto"),
-                pad_token_id=tokenizer.pad_token_id,
-                **model_config,
-            )
-        self.tokenizer = tokenizer
-        self.model = model
+        # Use ModelManager for centralized model loading
+        self._model_manager = ModelManager(model_name, device_map, model_config)
         self.context_idxs = []
-        self.max_position_embeddings = config.max_position_embeddings
+
+        if use_llmlingua2 or use_slingua:  # slingua use llmlingua2 backend
+            self._model_manager.init_llmlingua2(**llmlingua2_config)
+
+    # Delegation properties for backward compatibility
+    @property
+    def model(self):
+        """Get the loaded model (delegated to ModelManager)."""
+        return self._model_manager.model
+
+    @property
+    def tokenizer(self):
+        """Get the loaded tokenizer (delegated to ModelManager)."""
+        return self._model_manager.tokenizer
+
+    @property
+    def device(self):
+        """Get the device string (delegated to ModelManager)."""
+        return self._model_manager.device
+
+    @property
+    def max_position_embeddings(self):
+        """Get max position embeddings (delegated to ModelManager)."""
+        return self._model_manager.max_position_embeddings
+
+    @property
+    def max_batch_size(self):
+        """Get max batch size for LLMLingua-2."""
+        return self._model_manager.max_batch_size
+
+    @property
+    def max_seq_len(self):
+        """Get max sequence length for LLMLingua-2."""
+        return self._model_manager.max_seq_len
+
+    @property
+    def max_force_token(self):
+        """Get max force token count for LLMLingua-2."""
+        return self._model_manager.max_force_token
+
+    @property
+    def special_tokens(self):
+        """Get special tokens set for LLMLingua-2."""
+        return self._model_manager.special_tokens
+
+    @property
+    def added_tokens(self):
+        """Get added tokens list for LLMLingua-2."""
+        return self._model_manager.added_tokens
 
     def get_ppl(
         self,

@@ -168,15 +168,15 @@ class RankingRegistry:
 
 ---
 
-### Phase 2 : Extraction du module `core/` (Priorité: HAUTE)
+### Phase 2 : Extraction du module `core/` (Priorité: HAUTE) ✅ COMPLÉTÉ
 
 **Objectif** : Centraliser le chargement de modèles et la gestion des tokens.
 
-**Fichiers à créer** :
-- [ ] `llmlangstral/core/__init__.py`
-- [ ] `llmlangstral/core/base.py` (BaseCompressor, CompressionResult)
-- [ ] `llmlangstral/core/model_loader.py` (ModelManager)
-- [ ] `llmlangstral/core/tokenization.py` (TokenizationMixin)
+**Fichiers créés** :
+- [x] `llmlangstral/core/__init__.py`
+- [x] `llmlangstral/core/base.py` (BaseCompressor, CompressionResult)
+- [x] `llmlangstral/core/model_loader.py` (ModelManager)
+- [x] `llmlangstral/core/tokenization.py` (TokenizationMixin)
 
 **Code cible** :
 
@@ -250,7 +250,13 @@ class ModelManager:
         pass
 ```
 
-**Effort estimé** : 1-2 jours
+**Résultats** :
+- 4 fichiers créés dans `llmlangstral/core/`
+- `prompt_compressor.py` utilise délégation vers `ModelManager`
+- Propriétés de backward compatibility ajoutées
+- Syntaxe validée (py_compile OK)
+
+**Effort réel** : 1 jour
 **Risque** : Faible
 
 ---
@@ -432,7 +438,7 @@ __all__ = [
 | Phase | Description | Effort | Risque | Priorité | Statut |
 |-------|-------------|--------|--------|----------|--------|
 | 1 | Module `ranking/` | 1j | Faible | HAUTE | ✅ FAIT |
-| 2 | Module `core/` | 1-2j | Faible | HAUTE | ⏳ |
+| 2 | Module `core/` | 1j | Faible | HAUTE | ✅ FAIT |
 | 3 | Module `filters/` | 2-3j | Moyen | MOYENNE | ⏳ |
 | 4 | Module `compression/` | 3-4j | Élevé | MOYENNE | ⏳ |
 | 5 | Modules `budget/` + `recovery/` | 1-2j | Faible | BASSE | ⏳ |
