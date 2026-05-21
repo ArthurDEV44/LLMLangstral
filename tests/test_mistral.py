@@ -48,12 +48,20 @@ class TestMistralCompressor(unittest.TestCase):
 
     Note: These tests use SMALL_MODEL with CPU to minimize resource usage
     in CI environments. Tests validate functionality, not exact outputs.
+
+    Phantom-model caveat (v0.3.x): SMALL_MODEL currently points at a
+    Ministral identifier that is not yet published on HuggingFace Hub
+    (see llmlangstral/mistral_config.py). Until the model is released,
+    setUpClass below will catch the load failure and every test in this
+    class is skipped. Replace SMALL_MODEL with a real published checkpoint
+    to activate this suite in CI.
     """
 
     @classmethod
     def setUpClass(cls):
         """Initialize compressor with small Mistral model."""
-        # Skip if model loading fails (e.g., in resource-constrained CI)
+        # Skip if model loading fails (e.g., in resource-constrained CI,
+        # or because SMALL_MODEL is still a placeholder identifier).
         try:
             cls.compressor = PromptCompressor(
                 model_name=SMALL_MODEL,
@@ -76,7 +84,7 @@ class TestMistralCompressor(unittest.TestCase):
             "It contains multiple sentences with various words. "
             "The compression algorithm should reduce its length."
         )
-        result = self.compressor.compress_prompt(prompt, rate=0.5)
+        result = self.compressor.compress_prompt([prompt], rate=0.5)
 
         # Verify result structure
         self.assertIn("compressed_prompt", result)
@@ -129,7 +137,7 @@ class TestMistralCompressor(unittest.TestCase):
         )
         target = 20
 
-        result = self.compressor.compress_prompt(prompt, target_token=target)
+        result = self.compressor.compress_prompt([prompt], target_token=target)
 
         # Compressed tokens should be close to target (within reasonable margin)
         self.assertIn("compressed_tokens", result)
@@ -144,7 +152,6 @@ class TestMistralModelNames(unittest.TestCase):
         """Test that default initialization uses Mistral model."""
         # This test just verifies the import works - actual model loading
         # is tested in TestMistralCompressor
-        from llmlangstral import PromptCompressor
         from llmlangstral.mistral_config import DEFAULT_MODEL
 
         # Verify the default model constant is correct

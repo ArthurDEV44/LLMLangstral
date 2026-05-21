@@ -4,11 +4,11 @@
 """Sentence-level filtering for fine-grained content selection."""
 
 from collections import defaultdict
-from typing import List, Tuple
+from typing import Any, List, Optional, Tuple
 
 import nltk
 
-from .base import FilterBase, FilterContext
+from .base import FilterBase
 
 
 class SentenceLevelFilter(FilterBase):
@@ -32,10 +32,10 @@ class SentenceLevelFilter(FilterBase):
         question: str = "",
         condition_in_question: str = "none",
         rank_method: str = "longllmlingua",
-        context_segs: List[List[str]] = None,
-        context_segs_rate: List[List[float]] = None,
-        context_segs_compress: List[List[bool]] = None,
-    ) -> Tuple[List[str], List[List[tuple]]]:
+        context_segs: Optional[List[List[str]]] = None,
+        context_segs_rate: Optional[List[List[float]]] = None,
+        context_segs_compress: Optional[List[List[bool]]] = None,
+    ) -> Tuple[List[str], List[List[Tuple[Any, ...]]]]:
         """
         Filter sentences by relevance and budget.
 
@@ -97,6 +97,8 @@ class SentenceLevelFilter(FilterBase):
         # Handle structured compression segments
         sen2seg_ratio = {}
         if context_segs is not None:
+            assert context_segs_rate is not None
+            assert context_segs_compress is not None
             idx = 0
             for idx_d, sentences_each_context in enumerate(sentences):
                 segments_length = [len(s) for s in context_segs[idx_d]]
@@ -146,6 +148,7 @@ class SentenceLevelFilter(FilterBase):
 
         # Rank sentences
         if rank_method == "longllmlingua":
+            assert self.ctx.get_condition_ppl_fn is not None
             sentence_ppl = [
                 self.ctx.get_condition_ppl_fn(
                     sentence, question, condition_in_question
@@ -173,6 +176,7 @@ class SentenceLevelFilter(FilterBase):
                 enumerate(sentence_ppl), key=lambda x: sort_direct * x[1]
             )
         else:
+            assert self.ctx.get_rank_results_fn is not None
             sent_sort = self.ctx.get_rank_results_fn(
                 context_sentences,
                 question,

@@ -2,6 +2,7 @@
 # Licensed under The MIT License [see LICENSE for details]
 
 import unittest
+from typing import List
 
 from llmlangstral import PromptCompressor
 from llmlangstral.mistral_config import TEST_MODEL
@@ -64,14 +65,14 @@ class LLMLangstralTester(unittest.TestCase):
             import nltk
 
             nltk.download("punkt")
-        except:
+        except Exception:
             print("nltk_data exits.")
         self.compressor = PromptCompressor(TEST_MODEL, device_map="cpu")
 
     def test_general_compress_prompt(self):
         # Single Context - structural validation
         compressed_prompt = self.compressor.compress_prompt(
-            self.GSM8K_PROMPT.split("\n\n")[0], target_token=150
+            [self.GSM8K_PROMPT.split("\n\n")[0]], target_token=150
         )
         # Verify result structure
         self.assertIn("compressed_prompt", compressed_prompt)
@@ -89,8 +90,9 @@ class LLMLangstralTester(unittest.TestCase):
         self.assertGreater(len(compressed_prompt["compressed_prompt"]), 0)
 
         # Multiple Context - structural validation
+        context: List[str] = list(self.GSM8K_PROMPT.split("\n\n"))
         compressed_prompt = self.compressor.compress_prompt(
-            self.GSM8K_PROMPT.split("\n\n"), target_token=150
+            context, target_token=150
         )
         self.assertIn("compressed_prompt", compressed_prompt)
         self.assertGreater(compressed_prompt["origin_tokens"], 0)

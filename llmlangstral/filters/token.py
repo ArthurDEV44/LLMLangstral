@@ -3,11 +3,11 @@
 
 """Token-level filtering for fine-grained compression."""
 
-from typing import List, Tuple
+from typing import Any, List, Optional, Tuple
 
 import torch
 
-from .base import FilterBase, FilterContext
+from .base import FilterBase
 
 
 class TokenLevelFilter(FilterBase):
@@ -27,9 +27,9 @@ class TokenLevelFilter(FilterBase):
         keep_split: bool = False,
         split_token_id: int = 13,
         start: int = 0,
-        dynamic_ratio: list = None,
+        dynamic_ratio: Optional[List[Any]] = None,
         condition_compare: bool = False,
-        segments_info: List[List[tuple]] = None,
+        segments_info: Optional[List[List[Tuple[Any, ...]]]] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Iteratively compress tokens based on PPL.
@@ -66,8 +66,10 @@ class TokenLevelFilter(FilterBase):
         input_ids = tokenized_text["input_ids"].to(self.device)
         attention_mask = tokenized_text["attention_mask"].to(self.device)
 
-        N = (attention_mask == 1).sum()
         compressed_input_ids, compressed_attention_mask = input_ids, attention_mask
+        self_compressed_input_ids: Optional[torch.Tensor] = None
+        self_compressed_attention_mask: Optional[torch.Tensor] = None
+        self_loss: Optional[torch.Tensor] = None
 
         if condition_compare:
             self_input_ids, self_attention_mask = (
@@ -85,7 +87,7 @@ class TokenLevelFilter(FilterBase):
         # Build keep_flag for split token preservation
         if keep_split:
             input_ids_numpy = input_ids.cpu().detach().numpy()[0]
-            N = len(input_ids_numpy)
+            n_ids = len(input_ids_numpy)
             keep_flag = [
                 int(
                     (
@@ -94,12 +96,12 @@ class TokenLevelFilter(FilterBase):
                         and input_ids_numpy[ii - 1] == split_token_id
                     )
                     or (
-                        ii < N - 1
+                        ii < n_ids - 1
                         and input_ids_numpy[ii] == split_token_id
                         and input_ids_numpy[ii + 1] == split_token_id
                     )
                 )
-                for ii in range(N)
+                for ii in range(n_ids)
             ]
             keep_flag = torch.tensor(keep_flag).to(self.device)
 
@@ -134,6 +136,9 @@ class TokenLevelFilter(FilterBase):
                 end, ready_end = end - e, ready_end - e
 
                 if condition_compare:
+                    assert self_past_key_values is not None
+                    assert self_compressed_input_ids is not None
+                    assert self_compressed_attention_mask is not None
                     s = min(s, self_past_key_values[0][0].shape[2] - e)
                     self_ready_end -= e
                     if pop_self_compressed_input_ids is None:
@@ -159,6 +164,7 @@ class TokenLevelFilter(FilterBase):
                     ]
 
             # Compute PPL for current window
+            assert self.ctx.get_ppl_fn is not None
             loss, past_key_values = self.ctx.get_ppl_fn(
                 "",
                 "token",
@@ -193,6 +199,9 @@ class TokenLevelFilter(FilterBase):
 
             # Handle conditional comparison mode
             if condition_compare:
+                assert self_compressed_input_ids is not None
+                assert self_compressed_attention_mask is not None
+                assert self.ctx.get_ppl_fn is not None
                 self_loss, self_past_key_values = self.ctx.get_ppl_fn(
                     "",
                     "token",
@@ -202,6 +211,7 @@ class TokenLevelFilter(FilterBase):
                     return_kv=True,
                     end=end - start if idx else None,
                 )
+                assert self_loss is not None
                 if self_past_loss is not None:
                     if end - start - 1 > len(self_past_loss):
                         self_past_loss = torch.cat(
@@ -239,6 +249,7 @@ class TokenLevelFilter(FilterBase):
                 loss = past_loss
                 if condition_compare:
                     self_loss = self_past_loss
+                    assert self_loss is not None
                     threshold = self.get_estimate_threshold_base_distribution(
                         self_loss[: loss[start:].shape[0]] - loss[start:], ratio, False
                     )
@@ -384,6 +395,8 @@ class TokenLevelFilter(FilterBase):
         ].unsqueeze(0)
 
         if self_loss is not None:
+            assert self_input_ids is not None
+            assert self_attention_mask is not None
             self_compressed_input_ids = self_input_ids[self_attention_mask == 1][
                 need_idx[start:]
             ].unsqueeze(0)
@@ -446,12 +459,12 @@ class TokenLevelFilter(FilterBase):
 
     def get_dynamic_compression_ratio(
         self,
-        context: list,
+        context: List[str],
         target_token: float,
         iterative_size: int,
-        dynamic_ratio: list,
+        dynamic_ratio: Optional[List[Any]],
         start: int,
-        seg_info: List[List[tuple]] = None,
+        seg_info: Optional[List[List[Tuple[Any, ...]]]] = None,
     ):
         """
         Compute per-context compression ratios for iterative processing.
@@ -468,10 +481,12 @@ class TokenLevelFilter(FilterBase):
             List of iterative compression ratios per window.
         """
 
+        assert dynamic_ratio is not None
+
         def get_ratio(base: float, delta: float):
             return max(min(1, base + delta), 0)
 
-        context_length = [self.get_token_length(ii, False) + 2 for ii in context]
+        context_length = [self.get_token_length(ii) + 2 for ii in context]
         if start:
             context_length = context_length[1:]
         tau = target_token / (sum(context_length) + 1)
@@ -508,11 +523,11 @@ class TokenLevelFilter(FilterBase):
 
     def get_structured_dynamic_compression_ratio(
         self,
-        context: list,
+        context: List[str],
         iterative_size: int,
-        dynamic_ratio: list,
+        dynamic_ratio: Optional[List[Any]],
         start: int,
-        seg_info: List[List[tuple]] = None,
+        seg_info: Optional[List[List[Tuple[Any, ...]]]] = None,
     ):
         """
         Map structured segments to token-level compression ratios.
@@ -527,6 +542,7 @@ class TokenLevelFilter(FilterBase):
         Returns:
             List of iterative compression ratios per window.
         """
+        assert seg_info is not None
         if start:
             pure_context = context[1:]
         else:

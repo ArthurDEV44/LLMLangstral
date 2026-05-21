@@ -1,79 +1,14 @@
+from __future__ import annotations
+
 import json
 import os
 import random
 import re
-import string
+from typing import Any, List, Tuple
 
 import numpy as np
 import torch
 import yaml
-from torch.utils.data import Dataset
-
-
-class TokenClfDataset(Dataset):
-    def __init__(
-        self,
-        texts,
-        max_len=512,
-        tokenizer=None,
-        model_name="bert-base-multilingual-cased",
-    ):
-        self.len = len(texts)
-        self.texts = texts
-        self.tokenizer = tokenizer
-        self.max_len = max_len
-        self.model_name = model_name
-        if "bert-base-multilingual-cased" in model_name:
-            self.cls_token = "[CLS]"
-            self.sep_token = "[SEP]"
-            self.unk_token = "[UNK]"
-            self.pad_token = "[PAD]"
-            self.mask_token = "[MASK]"
-        elif "xlm-roberta-large" in model_name:
-            self.bos_token = "<s>"
-            self.eos_token = "</s>"
-            self.sep_token = "</s>"
-            self.cls_token = "<s>"
-            self.unk_token = "<unk>"
-            self.pad_token = "<pad>"
-            self.mask_token = "<mask>"
-        elif "mistral" in model_name.lower() or "ministral" in model_name.lower():
-            self.bos_token = "<s>"
-            self.eos_token = "</s>"
-            self.sep_token = "</s>"
-            self.cls_token = "<s>"
-            self.unk_token = "<unk>"
-            self.pad_token = "</s>"  # Mistral uses eos as pad
-            self.mask_token = None
-        else:
-            raise NotImplementedError()
-
-    def __getitem__(self, index):
-        text = self.texts[index]
-        tokenized_text = self.tokenizer.tokenize(text)
-
-        tokenized_text = (
-            [self.cls_token] + tokenized_text + [self.sep_token]
-        )  # add special tokens
-
-        if len(tokenized_text) > self.max_len:
-            tokenized_text = tokenized_text[: self.max_len]
-        else:
-            tokenized_text = tokenized_text + [
-                self.pad_token for _ in range(self.max_len - len(tokenized_text))
-            ]
-
-        attn_mask = [1 if tok != self.pad_token else 0 for tok in tokenized_text]
-
-        ids = self.tokenizer.convert_tokens_to_ids(tokenized_text)
-
-        return {
-            "ids": torch.tensor(ids, dtype=torch.long),
-            "mask": torch.tensor(attn_mask, dtype=torch.long),
-        }
-
-    def __len__(self):
-        return self.len
 
 
 def seed_everything(seed: int):
@@ -84,59 +19,6 @@ def seed_everything(seed: int):
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-
-
-def is_begin_of_new_word(token, model_name, force_tokens, token_map):
-    if "bert-base-multilingual-cased" in model_name \
-            or "tinybert" in model_name.lower() \
-            or "mobilebert" in model_name.lower():
-        if token.lstrip("##") in force_tokens or token.lstrip("##") in set(
-            token_map.values()
-        ):
-            return True
-        return not token.startswith("##")
-    elif "xlm-roberta-large" in model_name \
-            or 'slingua' in model_name.lower() \
-            or 'securitylingua' in model_name.lower():
-        if (
-            token in string.punctuation
-            or token in force_tokens
-            or token in set(token_map.values())
-        ):
-            return True
-        return token.startswith("▁")
-    elif "mistral" in model_name.lower() or "ministral" in model_name.lower():
-        if (
-            token in string.punctuation
-            or token in force_tokens
-            or token in set(token_map.values())
-        ):
-            return True
-        # Mistral BPE: tokens starting with ▁ or space = new word
-        return token.startswith("▁") or token.startswith(" ")
-    else:
-        raise NotImplementedError()
-
-
-def replace_added_token(token, token_map):
-    for ori_token, new_token in token_map.items():
-        token = token.replace(new_token, ori_token)
-    return token
-
-
-def get_pure_token(token, model_name):
-    if "bert-base-multilingual-cased" in model_name \
-            or "tinybert" in model_name.lower() \
-            or "mobilebert" in model_name.lower():
-        return token.lstrip("##")
-    elif "xlm-roberta-large" in model_name \
-            or 'slingua' in model_name.lower() \
-            or 'securitylingua' in model_name.lower():
-        return token.lstrip("▁")
-    elif "mistral" in model_name.lower() or "ministral" in model_name.lower():
-        return token.lstrip("▁").lstrip(" ")
-    else:
-        raise NotImplementedError()
 
 
 def process_structured_json_data(json_data, json_config):
@@ -174,7 +56,7 @@ def precess_jsonKVpair(k, v, value_type, rate):
     if rate == 1:
         return (
             "<llmlingua, compress=False>"
-            + f"{json.dumps({k:v})[1:-1]}, "
+            + f"{json.dumps({k: v})[1:-1]}, "
             + "</llmlingua>"
         )
     if value_type == "str" or value_type == "string":
@@ -186,7 +68,7 @@ def precess_jsonKVpair(k, v, value_type, rate):
         )
         return (
             "<llmlingua, compress=False>"
-            + f"{json.dumps({k:new_v})[1:-1]}, "
+            + f"{json.dumps({k: new_v})[1:-1]}, "
             + "</llmlingua>"
         )
     elif value_type in ["int", "float", "integer", "number"]:
@@ -212,7 +94,7 @@ def precess_jsonKVpair(k, v, value_type, rate):
         )
         return (
             "<llmlingua, compress=False>"
-            + f"{json.dumps({k:new_v})[1:-1]}, "
+            + f"{json.dumps({k: new_v})[1:-1]}, "
             + "</llmlingua>"
         )
     elif value_type == "list" or value_type == "List":
@@ -261,3 +143,82 @@ def remove_consecutive_commas(text):
     text = re.sub(r",\s*", ",", text)
     text = re.sub(r",+", ",", text)
     return text
+
+
+def segment_structured_context(
+    context: List[str],
+    global_rate: float,
+):
+    new_context, context_segs, context_segs_rate, context_segs_compress = (
+        [],
+        [],
+        [],
+        [],
+    )
+    for text in context:
+        if not text.startswith("<llmlingua"):
+            text = "<llmlingua>" + text
+        if not text.endswith("</llmlingua>"):
+            text = text + "</llmlingua>"
+
+        # Regular expression to match <llmlingua, rate=x, compress=y>content</llmlingua>, allowing rate and compress in any order
+        pattern = r"<llmlingua\s*(?:,\s*rate\s*=\s*([\d\.]+))?\s*(?:,\s*compress\s*=\s*(True|False))?\s*(?:,\s*rate\s*=\s*([\d\.]+))?\s*(?:,\s*compress\s*=\s*(True|False))?\s*>([^<]+)</llmlingua>"
+        matches = re.findall(pattern, text)
+
+        # Extracting segment contents
+        segments = [match[4] for match in matches]
+
+        # Extracting rate and compress, considering their possible positions
+        segs_rate = [
+            float(match[0]) if match[0] else (float(match[2]) if match[2] else None)
+            for match in matches
+        ]
+        segs_compress = [
+            (
+                match[1] == "True"
+                if match[1]
+                else (match[3] == "True" if match[3] else None)
+            )
+            for match in matches
+        ]
+
+        segs_compress = [
+            compress if compress is not None else True for compress in segs_compress
+        ]
+        segs_rate = [
+            rate if rate else (global_rate if compress else 1.0)
+            for rate, compress in zip(segs_rate, segs_compress)
+        ]
+        assert (
+            len(segments) == len(segs_rate) == len(segs_compress)
+        ), "The number of segments, rates, and compress flags should be the same."
+        assert all(
+            seg_rate <= 1.0 for seg_rate in segs_rate
+        ), "Error: 'rate' must not exceed 1.0. The value of 'rate' indicates compression rate and must be within the range [0, 1]."
+
+        new_context.append("".join(segments))
+        context_segs.append(segments)
+        context_segs_rate.append(segs_rate)
+        context_segs_compress.append(segs_compress)
+
+    return new_context, context_segs, context_segs_rate, context_segs_compress
+
+
+def concate_segment_info(
+    segment_info: List[List[Tuple[Any, ...]]],
+):
+    new_segment_info = []
+    for i, (seg_len, seg_ratio, seg_compress) in enumerate(segment_info):
+        if (
+            new_segment_info
+            and new_segment_info[-1][1] == seg_ratio
+            and new_segment_info[-1][2] == seg_compress
+        ):
+            new_segment_info[-1] = (
+                new_segment_info[-1][0] + seg_len,
+                seg_ratio,
+                seg_compress,
+            )
+        else:
+            new_segment_info.append((seg_len, seg_ratio, seg_compress))
+    return new_segment_info

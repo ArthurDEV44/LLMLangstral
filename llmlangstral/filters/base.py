@@ -4,10 +4,8 @@
 """Base classes for multi-level filtering strategies."""
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Any, Callable, List, Tuple, Union
-
-import torch
+from dataclasses import dataclass
+from typing import Any, Callable, Optional
 
 
 @dataclass
@@ -32,9 +30,9 @@ class FilterContext:
     device: str
     max_position_embeddings: int
     cache_bos_num: int = 10
-    get_ppl_fn: Callable = None
-    get_condition_ppl_fn: Callable = None
-    get_rank_results_fn: Callable = None
+    get_ppl_fn: Optional[Callable[..., Any]] = None
+    get_condition_ppl_fn: Optional[Callable[..., Any]] = None
+    get_rank_results_fn: Optional[Callable[..., Any]] = None
 
 
 class FilterBase(ABC):
@@ -71,13 +69,12 @@ class FilterBase(ABC):
         """Get max position embeddings from context."""
         return self.ctx.max_position_embeddings
 
-    def get_token_length(self, text: str, use_oai: bool = False) -> int:
+    def get_token_length(self, text: str) -> int:
         """
-        Get the number of tokens in a text.
+        Get the number of tokens in a text using the Mistral tokenizer.
 
         Args:
             text: Input text to tokenize.
-            use_oai: Whether to use OpenAI tokenizer (not supported in filter).
 
         Returns:
             Number of tokens.
@@ -85,6 +82,6 @@ class FilterBase(ABC):
         return len(self.tokenizer.encode(text))
 
     @abstractmethod
-    def filter(self, *args, **kwargs):
+    def filter(self, *args, **kwargs) -> Any:
         """Apply the filtering strategy. Override in subclasses."""
         pass

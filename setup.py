@@ -30,7 +30,6 @@ INSTALL_REQUIRES = [
     "protobuf",
     "nltk",
     "numpy",
-    "tiktoken",  # Gardé pour compatibilité OpenAI
 ]
 QUANLITY_REQUIRES = [
     "black==21.4b0",
@@ -40,7 +39,12 @@ QUANLITY_REQUIRES = [
     "pytest",
     "pytest-xdist",
 ]
-DEV_REQUIRES = INSTALL_REQUIRES + QUANLITY_REQUIRES
+# Optional ranker backends — each ranker lazy-imports its deps at runtime.
+# Without these extras, calling rank_method="mistral" or "bm25" raises ImportError.
+MISTRAL_RANKER_REQUIRES = ["sentence_transformers>=2.2.0"]
+BM25_RANKER_REQUIRES = ["rank_bm25>=0.2.2"]
+ALL_RANKERS_REQUIRES = MISTRAL_RANKER_REQUIRES + BM25_RANKER_REQUIRES
+DEV_REQUIRES = INSTALL_REQUIRES + QUANLITY_REQUIRES + ALL_RANKERS_REQUIRES
 
 setup(
     name="llmlangstral",
@@ -64,6 +68,9 @@ setup(
     extras_require={
         "dev": DEV_REQUIRES,
         "quality": QUANLITY_REQUIRES,
+        "mistral-ranker": MISTRAL_RANKER_REQUIRES,
+        "bm25": BM25_RANKER_REQUIRES,
+        "all": ALL_RANKERS_REQUIRES,
     },
     install_requires=INSTALL_REQUIRES,
     include_package_data=True,

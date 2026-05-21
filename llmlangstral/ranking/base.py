@@ -3,8 +3,10 @@
 
 """Base classes for ranking strategies."""
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Callable, List, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 
 class RankingStrategy(ABC):
@@ -43,7 +45,7 @@ class RankingStrategy(ABC):
         pass
 
 
-class ModelBasedRanker(RankingStrategy):
+class ModelBasedRanker(RankingStrategy, ABC):
     """
     Base class for rankers that use embedding models.
 
@@ -60,7 +62,7 @@ class ModelBasedRanker(RankingStrategy):
         self._tokenizer = None
 
     @property
-    def model(self):
+    def model(self) -> Any:
         """Lazy load the model on first access."""
         if self._model is None:
             self._load_model()
@@ -71,20 +73,7 @@ class ModelBasedRanker(RankingStrategy):
         raise NotImplementedError("Subclasses must implement _load_model")
 
 
-class APIBasedRanker(RankingStrategy):
-    """
-    Base class for rankers that use external APIs.
-
-    Requires API configuration (keys, endpoints) to be provided.
-    """
-
-    requires_api_config: bool = True
-
-    def __init__(self, api_config: dict = None, **kwargs):
-        self.api_config = api_config or {}
-
-
-class PPLBasedRanker(RankingStrategy):
+class PPLBasedRanker(RankingStrategy, ABC):
     """
     Base class for rankers that use perplexity from the main LLM.
 
@@ -93,7 +82,7 @@ class PPLBasedRanker(RankingStrategy):
 
     def __init__(
         self,
-        ppl_fn: Callable[[str, str, str], float] = None,
+        ppl_fn: Optional[Callable[[str, str, str], float]] = None,
         **kwargs,
     ):
         """

@@ -3,9 +3,9 @@
 
 """Context-level filtering for document selection."""
 
-from typing import List, Tuple
+from typing import Any, List, Optional, Tuple
 
-from .base import FilterBase, FilterContext
+from .base import FilterBase
 
 
 class ContextLevelFilter(FilterBase):
@@ -22,19 +22,19 @@ class ContextLevelFilter(FilterBase):
         context: List[str],
         context_tokens_length: List[int],
         target_token: float,
-        force_context_ids: List[int] = None,
-        force_context_number: int = None,
+        force_context_ids: Optional[List[int]] = None,
+        force_context_number: Optional[int] = None,
         question: str = "",
         condition_in_question: str = "none",
         reorder_context: str = "original",
         dynamic_context_compression_ratio: float = 0.0,
         rank_method: str = "longllmlingua",
         context_budget: str = "+100",
-        context_segs: List[List[str]] = None,
-        context_segs_rate: List[List[float]] = None,
-        context_segs_compress: List[List[bool]] = None,
+        context_segs: Optional[List[List[str]]] = None,
+        context_segs_rate: Optional[List[List[float]]] = None,
+        context_segs_compress: Optional[List[List[bool]]] = None,
         strict_preserve_uncompressed: bool = True,
-    ) -> Tuple[List[str], List[float], List[int]]:
+    ) -> Tuple[List[str], List[float], List[int], List[Any]]:
         """
         Filter contexts by relevance and budget.
 
@@ -59,6 +59,7 @@ class ContextLevelFilter(FilterBase):
             Tuple of (filtered_contexts, dynamic_ratios, used_indices).
         """
         # Rank contexts by relevance
+        assert self.ctx.get_rank_results_fn is not None
         demostrations_sort = self.ctx.get_rank_results_fn(
             context,
             question,
@@ -76,6 +77,7 @@ class ContextLevelFilter(FilterBase):
 
         # Force include contexts with uncompressed segments
         if context_segs is not None and strict_preserve_uncompressed:
+            assert context_segs_compress is not None
             for idx, _ in enumerate(context):
                 if False in context_segs_compress[idx] and idx not in used:
                     used.append(idx)
@@ -101,10 +103,10 @@ class ContextLevelFilter(FilterBase):
         if reorder_context == "original":
             used = sorted(used)
         elif reorder_context == "two_stage":
-            l, r = [_ for idx, _ in enumerate(used) if idx % 2 == 0], [
+            left, right = [_ for idx, _ in enumerate(used) if idx % 2 == 0], [
                 _ for idx, _ in enumerate(used) if idx % 2 == 1
             ]
-            used = l + r[::-1]
+            used = left + right[::-1]
 
         # Calculate dynamic compression ratios
         if dynamic_context_compression_ratio > 0:

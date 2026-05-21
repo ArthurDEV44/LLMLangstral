@@ -3,15 +3,16 @@
 
 """Centralized model loading and management."""
 
+from __future__ import annotations
+
+from typing import Any, Optional
+
 import torch
 from transformers import (
     AutoConfig,
     AutoModelForCausalLM,
-    AutoModelForTokenClassification,
     AutoTokenizer,
 )
-
-from ..utils import seed_everything
 
 
 class ModelManager:
@@ -38,7 +39,7 @@ class ModelManager:
         self,
         model_name: str,
         device_map: str = "cuda",
-        model_config: dict = None,
+        model_config: Optional[dict[str, Any]] = None,
     ):
         """
         Initialize the ModelManager.
@@ -58,13 +59,6 @@ class ModelManager:
         self._config = None
         self._device = None
         self._max_position_embeddings = None
-
-        # LLMLingua-2 specific attributes
-        self.max_batch_size = None
-        self.max_seq_len = None
-        self.max_force_token = None
-        self.special_tokens = None
-        self.added_tokens = None
 
     @property
     def model(self):
@@ -92,6 +86,7 @@ class ModelManager:
         """Get the resolved device string."""
         if self._device is None:
             self._load()
+        assert self._device is not None
         return self._device
 
     @property
@@ -99,6 +94,7 @@ class ModelManager:
         """Get the maximum position embeddings from model config."""
         if self._max_position_embeddings is None:
             self._load()
+        assert self._max_position_embeddings is not None
         return self._max_position_embeddings
 
     def _load(self):
@@ -109,6 +105,10 @@ class ModelManager:
         Handles device mapping, dtype selection, and model class detection.
         """
         model_config = self.model_config.copy()
+
+        # Extract our custom flag before forwarding kwargs to HF AutoClasses,
+        # which would otherwise raise TypeError on unknown kwargs.
+        pad_to_left = model_config.pop("pad_to_left", True)
 
         # Ensure trust_remote_code is set
         trust_remote_code = model_config.get("trust_remote_code", True)
@@ -122,22 +122,15 @@ class ModelManager:
         self._tokenizer = AutoTokenizer.from_pretrained(self.model_name, **model_config)
 
         # Configure padding
-        if model_config.get("pad_to_left", True):
+        if pad_to_left:
             self._tokenizer.padding_side = "left"
+            config_pad_id = getattr(self._config, "pad_token_id", None)
             self._tokenizer.pad_token_id = (
-                self._config.pad_token_id
-                if self._config.pad_token_id
-                else self._tokenizer.eos_token_id
+                config_pad_id if config_pad_id is not None else self._tokenizer.eos_token_id
             )
 
-        # Determine model class based on architecture
-        MODEL_CLASS = (
-            AutoModelForTokenClassification
-            if any(
-                "ForTokenClassification" in ar for ar in self._config.architectures
-            )
-            else AutoModelForCausalLM
-        )
+        # v0.3.x is Mistral-only: causal LM exclusively (no token-classification
+        # encoder path inherited from LLMLingua-2 / SecurityLingua).
 
         # Resolve device
         self._device = (
@@ -148,7 +141,7 @@ class ModelManager:
 
         # Load model with appropriate settings
         if "cuda" in self.device_map or "cpu" in self.device_map:
-            self._model = MODEL_CLASS.from_pretrained(
+            self._model = AutoModelForCausalLM.from_pretrained(
                 self.model_name,
                 torch_dtype=model_config.pop(
                     "torch_dtype",
@@ -160,7 +153,7 @@ class ModelManager:
                 **model_config,
             )
         else:
-            self._model = MODEL_CLASS.from_pretrained(
+            self._model = AutoModelForCausalLM.from_pretrained(
                 self.model_name,
                 device_map=self.device_map,
                 torch_dtype=model_config.pop("torch_dtype", "auto"),
@@ -168,44 +161,7 @@ class ModelManager:
                 **model_config,
             )
 
-        # Store max position embeddings
-        self._max_position_embeddings = self._config.max_position_embeddings
-
-    def init_llmlingua2(
-        self,
-        max_batch_size: int = 50,
-        max_force_token: int = 100,
-    ):
-        """
-        Initialize LLMLingua-2 specific settings.
-
-        This adds special tokens for forced retention during compression
-        and configures batch processing parameters.
-
-        Args:
-            max_batch_size: Maximum batch size for processing.
-            max_force_token: Maximum number of force-retained tokens.
-        """
-        # Ensure model is loaded
-        _ = self.model
-
-        seed_everything(42)
-        self.max_batch_size = max_batch_size
-        self.max_seq_len = 512
-        self.max_force_token = max_force_token
-
-        # Extract special tokens
-        self.special_tokens = set(
-            [
-                v
-                for k, v in self._tokenizer.special_tokens_map.items()
-                if k != "additional_special_tokens"
-            ]
+        # Store max position embeddings (fallback if config doesn't expose the attr)
+        self._max_position_embeddings = getattr(
+            self._config, "max_position_embeddings", 4096
         )
-
-        # Add custom tokens for force retention
-        self.added_tokens = [f"[NEW{i}]" for i in range(max_force_token)]
-        self._tokenizer.add_special_tokens(
-            {"additional_special_tokens": self.added_tokens}
-        )
-        self._model.resize_token_embeddings(len(self._tokenizer))

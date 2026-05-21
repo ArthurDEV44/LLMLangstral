@@ -5,7 +5,7 @@ CHECK_DIRS := llmlangstral tests
 
 install:
 	@${PYTHON} setup.py bdist_wheel
-	@${PYTHON} -m pip install dist/sdtools*
+	@${PYTHON} -m pip install dist/llmlangstral*
 
 style:
 	black $(CHECK_DIRS)

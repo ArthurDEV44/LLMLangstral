@@ -3,12 +3,17 @@
 
 """LLMLingua perplexity-based ranking strategies."""
 
-from typing import Callable, List, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from .base import PPLBasedRanker
 from .registry import RankingRegistry
 
 
+# Decorators apply bottom-up: "longllmlingua" registers first, then "llmlingua"
+# wraps and sets cls.name = "llmlingua" as the canonical identifier. Both keys
+# end up in RankingRegistry pointing at this same class; the difference in
+# behavior between the two modes is driven by condition_in_question in
+# PromptCompressor, not by a separate ranker class.
 @RankingRegistry.register("llmlingua")
 @RankingRegistry.register("longllmlingua")
 class LLMLinguaRanker(PPLBasedRanker):
@@ -30,7 +35,7 @@ class LLMLinguaRanker(PPLBasedRanker):
 
     def __init__(
         self,
-        ppl_fn: Callable[[str, str, str], float] = None,
+        ppl_fn: Optional[Callable[[str, str, str], float]] = None,
         **kwargs,
     ):
         """
@@ -48,7 +53,7 @@ class LLMLinguaRanker(PPLBasedRanker):
         corpus: List[str],
         query: str,
         condition_in_question: str = "none",
-        context_tokens_length: List[int] = None,
+        context_tokens_length: Optional[List[int]] = None,
         **kwargs,
     ) -> List[Tuple[int, float]]:
         """
@@ -78,7 +83,7 @@ class LLMLinguaRanker(PPLBasedRanker):
             ppl = self.ppl_fn(doc, augmented_query, condition_in_question)
             # Handle tensor output
             if hasattr(ppl, "cpu"):
-                ppl = ppl.cpu().item()
+                ppl = ppl.cpu().item()  # pyright: ignore[reportAttributeAccessIssue]
             context_ppl.append(ppl)
 
         # Sort direction depends on conditioning mode

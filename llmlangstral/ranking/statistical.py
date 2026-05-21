@@ -44,7 +44,7 @@ class BM25Ranker(RankingStrategy):
         Returns:
             List of (index, score) tuples sorted by BM25 score (descending).
         """
-        from rank_bm25 import BM25Okapi
+        from rank_bm25 import BM25Okapi  # pyright: ignore[reportMissingImports]
 
         tokenized_corpus = [doc.split(" ") for doc in corpus]
         bm25 = BM25Okapi(tokenized_corpus)
@@ -52,7 +52,7 @@ class BM25Ranker(RankingStrategy):
         doc_scores = bm25.get_scores(tokenized_query)
 
         # Sort by score descending, return (index, 0) format for compatibility
-        idx = [(ii, 0) for ii in (-doc_scores).argsort()]
+        idx = [(int(ii), 0.0) for ii in (-doc_scores).argsort()]
         return idx
 
 
@@ -100,5 +100,5 @@ class GzipRanker(RankingStrategy):
         doc_scores = [get_score(doc, query) for doc in corpus]
 
         # Lower score = more similar, sort ascending
-        idx = [(ii, 0) for ii in np.argsort(doc_scores)]
+        idx = [(int(ii), 0.0) for ii in np.argsort(doc_scores)]
         return idx

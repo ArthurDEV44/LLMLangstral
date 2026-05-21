@@ -11,14 +11,6 @@ content during compression.
 Available ranking methods:
     - bm25: BM25 (Okapi BM25) lexical ranking
     - gzip: Compression-based similarity ranking
-    - sentbert: SentenceBERT multi-qa embeddings
-    - bge: BAAI BGE-large embeddings
-    - bge_reranker: BAAI BGE cross-encoder reranker
-    - bge_llmembedder: BAAI LLM-Embedder
-    - jinza: Jina AI embeddings
-    - openai: OpenAI embeddings API
-    - voyageai: VoyageAI embeddings API
-    - cohere: Cohere rerank API
     - llmlingua: Perplexity-based ranking (native method)
     - longllmlingua: Alias for llmlingua
     - mistral: Mistral-based embeddings
@@ -37,25 +29,20 @@ Adding custom rankers:
     ...         return [(i, 0) for i in range(len(corpus))]
 """
 
+# Import all ranking implementations to trigger registration
+from . import llmlingua  # noqa: F401
+from . import mistral  # noqa: F401
+from . import statistical  # noqa: F401
 from .base import (
-    APIBasedRanker,
     ModelBasedRanker,
     PPLBasedRanker,
     RankingStrategy,
 )
 from .registry import RankingRegistry
 
-# Import all ranking implementations to trigger registration
-from . import api_based  # noqa: F401
-from . import llmlingua  # noqa: F401
-from . import mistral  # noqa: F401
-from . import neural  # noqa: F401
-from . import statistical  # noqa: F401
-
 __all__ = [
     "RankingStrategy",
     "ModelBasedRanker",
-    "APIBasedRanker",
     "PPLBasedRanker",
     "RankingRegistry",
 ]

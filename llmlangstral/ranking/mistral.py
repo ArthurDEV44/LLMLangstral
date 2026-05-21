@@ -3,7 +3,7 @@
 
 """Mistral embedding-based ranking strategy."""
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -24,7 +24,7 @@ class MistralRanker(ModelBasedRanker):
 
     name = "mistral"
 
-    def __init__(self, device: str = "cuda", embedding_model: str = None, **kwargs):
+    def __init__(self, device: str = "cuda", embedding_model: Optional[str] = None, **kwargs):
         """
         Initialize Mistral ranker.
 
@@ -43,7 +43,15 @@ class MistralRanker(ModelBasedRanker):
             self.model_name = EMBEDDING_MODEL
 
     def _load_model(self):
-        from sentence_transformers import SentenceTransformer
+        try:
+            from sentence_transformers import (
+                SentenceTransformer,  # pyright: ignore[reportMissingImports]
+            )
+        except ImportError as exc:
+            raise ImportError(
+                "rank_method='mistral' requires sentence_transformers. "
+                "Install it with: pip install 'llmlangstral[mistral-ranker]'"
+            ) from exc
 
         self._model = SentenceTransformer(self.model_name)
 
@@ -53,7 +61,13 @@ class MistralRanker(ModelBasedRanker):
         query: str,
         **kwargs,
     ) -> List[Tuple[int, float]]:
-        from sentence_transformers import util
+        try:
+            from sentence_transformers import util  # pyright: ignore[reportMissingImports]
+        except ImportError as exc:
+            raise ImportError(
+                "rank_method='mistral' requires sentence_transformers. "
+                "Install it with: pip install 'llmlangstral[mistral-ranker]'"
+            ) from exc
 
         # Prefix with "query: " as recommended for e5-mistral
         doc_embeds = self.model.encode(
@@ -66,5 +80,5 @@ class MistralRanker(ModelBasedRanker):
         )
 
         doc_scores = -util.dot_score(doc_embeds, query_embed).cpu().numpy().reshape(-1)
-        idx = [(ii, 0) for ii in np.argsort(doc_scores)]
+        idx = [(int(ii), 0.0) for ii in np.argsort(doc_scores)]
         return idx
