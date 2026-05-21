@@ -4,7 +4,7 @@
 
 1. **Prompt Sensitivity**: Different components of a prompt, like instructions and questions, vary in sensitivity to compression. Contexts or documents, for example, are less sensitive. It's advisable to separate these components in the prompt for demonstrations, instructions, and questions.
 2. **Granular Division**: For multi-document QA and few-shot learning, divide demonstrations and contexts into independent granularities. This helps with budget control and document reordering.
-3. **Essential Character Preservation**: Preserve essential characters as required by the scenario rules. **Support for this feature is now available in Structured Prompt Compression and LLMLingua-2**.
+3. **Essential Character Preservation**: Preserve essential characters as required by the scenario rules. **Support for this feature is available in Structured Prompt Compression** (see the `<llmlingua, rate=...>` tag syntax below).
 4. **Optimization through Experimentation**: Experiment with various target compression ratios and other hyperparameters to optimize performance.
 
 ## Basic Usage
@@ -51,23 +51,7 @@ compressed_prompt = llm_lingua.compress_prompt(
 )
 ```
 
-To try **LLMLingua-2** in your scenarios, you can use
-
-```python
-from llmlangstral import PromptCompressor
-
-llm_lingua = PromptCompressor(
-    model_name="microsoft/llmlingua-2-xlm-roberta-large-meetingbank",
-    use_llmlingua2=True,
-)
-compressed_prompt = llm_lingua.compress_prompt(prompt, rate=0.33, force_tokens = ['\n', '?'])
-
-## Or use LLMLingua-2-small model
-llm_lingua = PromptCompressor(
-    model_name="microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank",
-    use_llmlingua2=True,
-)
-```
+> **Note (v0.3.0)** — Le chemin LLMLingua-2 (XLM-RoBERTa token classification, 3-6x plus rapide) a été retiré en v0.3.0. Aucun équivalent Mistral n'existe à ce jour. Pour réutiliser le pipeline d'entraînement, voir la branche `legacy/experiments`.
 
 ## Advanced Usage
 
@@ -206,79 +190,31 @@ node_postprocessor = LongLLMLinguaPostprocessor(
 
 For a more detailed guide, please refer to [RAGLlamaIndex Example](https://github.com/microsoft/LLMLingua/blob/main/examples/RAGLlamaIndex.ipynb).
 
-### Training Your Own LLMLingua-2
+### Training Your Own Token-Classification Compressor (archived)
 
-Not performing well on some domain-specific tasks? Don't worry, we've released code to help you build your own training data by instructing GPT-4 to compress your custom corpus and train compressors on the distilled data.
-
-#### Data collection
-
-First, format your data to a list of dict, with each dict containing at least two keys: _idx_ and _prompt_. [**format_data.py**](./experiments/llmlingua2/data_collection/format_data.py) illustrates how we format the meetingbank data.
-
-Then, instruct GPT-4 to compress the original context.
-
-```bash
-cd experiments/llmlingua2/data_collection/
-python compress.py --load_origin_from <your data path> \
---chunk_size 512 \
---compressor llmcomp \
---model_name gpt-4-32k \
---save_path <compressed data save path>
-
-```
-
-Then, assign label to the original words and filter out poor compression samples.
-
-```bash
-cd experiments/llmlingua2/data_collection/
-python label_word.py \
---load_prompt_from <compressed data save path> \
---window_size 400 \
---save_path <labeled data save path> \
-
-```
-
-Filter out some poorly compressed / labeled samples.
-
-```bash
-cd experiments/llmlingua2/data_collection/
-python filter.py --load_path <labeled data save path> \
---save_path <kept data save path>
-```
-
-#### Compressor Training
-
-The [**model_training**](./experiments/llmlingua2/model_training) folder contains the code to train compressor on the distilled data.
-
-```bash
-cd cd experiments/llmlingua2/model_training/
-python train_roberta.py --data_path <kept data save path>
-```
+> **Note (v0.3.0)** — La pipeline d'entraînement LLMLingua-2 (XLM-RoBERTa distillé depuis GPT-4) a été déplacée sur la branche `legacy/experiments`. Reconstruire un équivalent Mistral demanderait de fine-tuner un encoder Mistral pour token classification — travail R&D distinct, candidat pour une release ultérieure.
 
 ## Detailed of Pramater
 
 ### Initialization
 
-Initialize **LLMLingua**, **LongLLMLingua**, and **LLMLingua-2** with the following parameters:
+Initialize **LLMLangstral** (base) and **LongLLMLangstral** with the following parameters:
 
 ```python
 from llmlangstral import PromptCompressor
 
 llm_lingua = PromptCompressor(
-    model_name="mistralai/Mistral-7B-v0.3", # Default model, use "microsoft/llmlingua-2-xlm-roberta-large-meetingbank" or "microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank" for LLMLingua-2
+    model_name="mistralai/Mistral-7B-v0.3", # Default Mistral model
     device_map="cuda",  # Device environment (e.g., 'cuda', 'cpu', 'mps')
     model_config={},  # Configuration for the Huggingface model
-    open_api_config={},  # Configuration for OpenAI Embedding
-    use_llmlingua2=False, # Whether to use llmlingua-2
 )
 ```
 
 #### Parameters
 
-- **model_name** (str): Name of the small language model from Huggingface, use "microsoft/llmlingua-2-xlm-roberta-large-meetingbank" or "microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank" for LLMLingua-2. Defaults to "mistralai/Mistral-7B-v0.3".
+- **model_name** (str): Name of the Mistral model from Huggingface. Defaults to "mistralai/Mistral-7B-v0.3".
 - **device_map** (str): The computing environment. Options include 'cuda', 'cpu', 'mps', 'balanced', 'balanced_low_0', 'auto'. Default is 'cuda'.
 - **model_config** (dict, optional): Configuration for the Huggingface model. Defaults to {}.
-- **open_api_config** (dict, optional): Configuration for OpenAI Embedding in coarse-level prompt compression. Defaults to {}.
-- **use_llmlingua2** (bool, optional): Whether to use llmlingua-2 for prompt compression. Defaults is False.
 
 ### Function Call
 
@@ -312,18 +248,9 @@ compressed_prompt = llm_lingua.compress_prompt(
     add_instruction: bool = False,  # Adds instruction before the prompt
     rank_method: str = "longllmlingua",  # Method for ranking in coarse-level compression
     concate_question: bool = True,  # Includes the question in the compressed prompt
-    # Parameters for LLMLingua-2
     target_context: int = -1,  # Context Budget for Coarse-level Prompt Compression
     context_level_rate: float = 1.0, # Compression rate for Coarse-level Prompt Compression
     context_level_target_token: int = -1, # Token Budget for Coarse-level Prompt Compression
-    return_word_label: bool = False, # Whether to return words with corresponding labels. Default is False.
-    word_sep: str = '\t\t|\t\t', # The sep token used in fn_labeled_original_prompt to partition words.
-    label_sep: str = " ", # The sep token used in fn_labeled_original_prompt to partition word and label.
-    token_to_word: str = 'mean', # How to convert token probability to word probability. Default is 'mean'.
-    force_tokens: List[str] = [], # List of specific tokens to always include in the compressed result. Default is [].
-    force_reserve_digit: bool = False, # Whether to forcibly reserve tokens that containing digit (0,...,9). Default is False.
-    drop_consecutive: bool = False, # Whether to drop tokens which are in 'force_tokens' but appears consecutively in compressed prompt. Default is False
-    chunk_end_tokens: List[str] = [".", "\n"] # The early stop tokens for segmenting chunk. Default is [".", "\n"].
 )
 ```
 
@@ -388,11 +315,6 @@ compressed_prompt = llm_lingua.compress_prompt(
 - **compressed_tokens** (int): Number of tokens in the compressed prompt.
 - **ratio** (str): Actual compression ratio.
 - **saving** (str): Savings in GPT-4 cost.
-
-Additional Response Parameter for LLMLingua-2.
-
-- **fn_labeled_original_prompt** (str): original words along with their labels indicating whether to reserve in compressed prompt, in the format (word1 label_sep label2 word_sep word2 label_sep label2 ...). Only return when return_word_label==True.
-- **compressed_prompt_list** (str): List of the compressed prompt.
 
 ### Post-Processing
 

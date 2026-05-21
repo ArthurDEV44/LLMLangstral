@@ -1,6 +1,20 @@
 # Plan de Migration LLMLingua vers Mistral AI
 
-## Objectif
+> ## État au 2026-05-21 — Résultat de la v0.3.0
+>
+> Ce document est désormais une **archive historique**. Le plan de migration a été exécuté avec les décisions suivantes :
+>
+> - **Modèles causals (LLMLingua / LongLLMLangstral)** : migrés vers `mistralai/Mistral-7B-v0.3` (défaut), `Ministral-3B`, `TheBloke/Mistral-7B-Instruct-v0.2-GPTQ`. ✅ Fait.
+> - **Token Classification (LLMLingua-2)** : **NON migré, retiré**. Aucun équivalent Mistral encoder pour token classification n'existe à ce jour. Le pipeline d'entraînement est préservé sur la branche `legacy/experiments`. Voir le PRD `tasks/prd-full-mistral-refactor.md`.
+> - **SecurityLingua** : **NON migré, retiré**. Même rationale que LLMLingua-2 (backend XLM-RoBERTa). Pipeline archivé sur `legacy/experiments`.
+> - **Rankers non-Mistral (BGE, SentBert, Jinza, OpenAI, VoyageAI, Cohere)** : **NON migrés, retirés**. Le registre des rankers contient maintenant exactement 5 clés : `bm25`, `gzip`, `llmlingua`, `longllmlingua`, `mistral`.
+> - **Tokenizer `tiktoken` (gpt-3.5-turbo)** : conservé en v0.3.0 pour parité numérique avec le `origin_tokens` retourné. Migration vers tokenizer Mistral : candidat pour v0.4.0.
+>
+> Pour le contexte de chaque décision, voir le PRD et son status JSON.
+>
+> Le reste du document décrit le plan original, exécuté partiellement (causals) ou rejeté (token-classification, security, rankers).
+
+## Objectif (historique)
 
 Migrer le fork LLMLingstral pour utiliser exclusivement des modèles Mistral AI en remplacement des modèles Microsoft, Meta (LLaMA), et autres modèles tiers.
 

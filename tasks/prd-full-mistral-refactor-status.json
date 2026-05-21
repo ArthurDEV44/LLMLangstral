@@ -1,0 +1,234 @@
+{
+  "prd": {
+    "file": "tasks/prd-full-mistral-refactor.md",
+    "title": "Refactor Full-Mistral — LLMLangstral v0.3.0",
+    "created_at": "2026-05-21",
+    "status": "DONE",
+    "completed_at": "2026-05-21"
+  },
+  "epics": [
+    {
+      "id": "EP-001",
+      "title": "Suppression du chemin LLMLingua-2 (XLM-RoBERTa)",
+      "status": "DONE",
+      "priority": "P0",
+      "stories_total": 4,
+      "stories_done": 4
+    },
+    {
+      "id": "EP-002",
+      "title": "Suppression des rankers non-Mistral",
+      "status": "DONE",
+      "priority": "P0",
+      "stories_total": 3,
+      "stories_done": 3
+    },
+    {
+      "id": "EP-003",
+      "title": "Nettoyage des helpers utilitaires",
+      "status": "DONE",
+      "priority": "P0",
+      "stories_total": 1,
+      "stories_done": 1
+    },
+    {
+      "id": "EP-004",
+      "title": "Nettoyage de l'API publique de compress_prompt",
+      "status": "DONE",
+      "priority": "P0",
+      "stories_total": 2,
+      "stories_done": 2
+    },
+    {
+      "id": "EP-005",
+      "title": "Documentation, archivage et finalisation v0.3.0",
+      "status": "DONE",
+      "priority": "P0",
+      "stories_total": 5,
+      "stories_done": 5
+    }
+  ],
+  "stories": [
+    {
+      "id": "US-001",
+      "title": "Supprimer filters/llmlingua2.py et ses tests",
+      "epic": "EP-001",
+      "status": "DONE",
+      "priority": "P0",
+      "size": "S",
+      "blocked_by": [],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-002",
+      "title": "Retirer les flags use_llmlingua2 / use_slingua de PromptCompressor",
+      "epic": "EP-001",
+      "status": "DONE",
+      "priority": "P0",
+      "size": "M",
+      "blocked_by": ["US-001"],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-003",
+      "title": "Retirer init_llmlingua2() et les properties LLMLingua-2-only de ModelManager",
+      "epic": "EP-001",
+      "status": "DONE",
+      "priority": "P0",
+      "size": "S",
+      "blocked_by": ["US-002"],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-004",
+      "title": "Retirer LLMLANGSTRAL2_MODEL de mistral_config.py",
+      "epic": "EP-001",
+      "status": "DONE",
+      "priority": "P0",
+      "size": "XS",
+      "blocked_by": ["US-002"],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-005",
+      "title": "Supprimer ranking/neural.py (BGE, SentBert, Jinza, BGEReranker, BGELLMEmbedderRanker)",
+      "epic": "EP-002",
+      "status": "DONE",
+      "priority": "P0",
+      "size": "S",
+      "blocked_by": [],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-006",
+      "title": "Supprimer ranking/api_based.py (OpenAI, VoyageAI, Cohere)",
+      "epic": "EP-002",
+      "status": "DONE",
+      "priority": "P0",
+      "size": "XS",
+      "blocked_by": [],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-007",
+      "title": "Retirer APIBasedRanker de ranking/base.py et nettoyer ranking/__init__.py",
+      "epic": "EP-002",
+      "status": "DONE",
+      "priority": "P0",
+      "size": "XS",
+      "blocked_by": ["US-005", "US-006"],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-008",
+      "title": "Supprimer TokenClfDataset, is_begin_of_new_word, get_pure_token, replace_added_token de utils.py",
+      "epic": "EP-003",
+      "status": "DONE",
+      "priority": "P0",
+      "size": "S",
+      "blocked_by": ["US-001"],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-009",
+      "title": "Retirer les 8 kwargs LLMLingua-2-only de compress_prompt",
+      "epic": "EP-004",
+      "status": "DONE",
+      "priority": "P0",
+      "size": "M",
+      "blocked_by": ["US-002"],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-010",
+      "title": "Mettre à jour la docstring de PromptCompressor (exemple + lien arXiv)",
+      "epic": "EP-004",
+      "status": "DONE",
+      "priority": "P0",
+      "size": "XS",
+      "blocked_by": ["US-002"],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-011",
+      "title": "Mettre à jour CLAUDE.md (table des variantes + sections architecture)",
+      "epic": "EP-005",
+      "status": "DONE",
+      "priority": "P1",
+      "size": "S",
+      "blocked_by": ["US-004", "US-007", "US-008", "US-010"],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-012",
+      "title": "Mettre à jour README.md, DOCUMENT.md, Transparency_FAQ.md",
+      "epic": "EP-005",
+      "status": "DONE",
+      "priority": "P1",
+      "size": "M",
+      "blocked_by": ["US-011"],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-013",
+      "title": "Archiver experiments/llmlangstral2/ et experiments/securitylingua/ sur branche legacy/experiments",
+      "epic": "EP-005",
+      "status": "DONE",
+      "priority": "P1",
+      "size": "S",
+      "blocked_by": [],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-014",
+      "title": "Bump version 0.2.2 -> 0.3.0 + changelog + git rm core/tokenization.py",
+      "epic": "EP-005",
+      "status": "DONE",
+      "priority": "P0",
+      "size": "XS",
+      "blocked_by": ["US-003", "US-004", "US-007", "US-008", "US-009", "US-010", "US-011", "US-012"],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null
+    },
+    {
+      "id": "US-015",
+      "title": "Quality gate final — full test suite + smoke imports + dead-symbol grep",
+      "epic": "EP-005",
+      "status": "DONE",
+      "priority": "P0",
+      "size": "S",
+      "blocked_by": ["US-014"],
+      "started_at": "2026-05-21",
+      "completed_at": "2026-05-21",
+      "reviewed_at": null,
+      "notes": "All 8 deterministic gates pass (grep guard, version, registry, py_compile, ImportError, flake8, isort, test_mistral.py config tests). 2 gates blocked by pre-existing env issues NOT caused by this PRD: (a) make style fails on Black 21.4b0/click _unicodefun incompatibility under Python 3.14; (b) 8 tests fail with Mistral3Config.pad_token_id AttributeError in core/model_loader.py:139 — identical failures on clean HEAD (verified via stash-pop during US-001). Both blockers need their own fix stories outside the v0.3.0 scope."
+    }
+  ]
+}

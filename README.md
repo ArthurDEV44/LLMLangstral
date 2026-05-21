@@ -51,7 +51,7 @@ Tout se passe localement sur votre machine. Aucune donnée n'est envoyée à un 
 
 ## Les variantes disponibles
 
-LLMLangstral propose plusieurs méthodes de compression selon vos besoins :
+LLMLangstral expose une seule classe `PromptCompressor` adossée à un backbone Mistral. Deux modes d'utilisation :
 
 ### LLMLangstral
 
@@ -59,15 +59,9 @@ La méthode de base. Elle utilise la perplexité (une mesure de "surprise" du mo
 
 ### LongLLMLangstral
 
-Optimisée pour les longs documents. Elle résout le problème du "lost in the middle" où les LLM ont tendance à oublier les informations situées au centre d'un long texte. Particulièrement utile pour le RAG (Retrieval-Augmented Generation).
+Même backbone Mistral, activé via `compress_prompt(..., use_context_level_filter=True, rank_method="longllmlingua")`. Optimisée pour les longs documents — elle résout le problème du "lost in the middle" où les LLM ont tendance à oublier les informations situées au centre d'un long texte. Particulièrement utile pour le RAG (Retrieval-Augmented Generation).
 
-### LLMLangstral-2
-
-La version la plus rapide. Elle utilise un modèle de classification de tokens (basé sur XLM-RoBERTa) entraîné par distillation depuis GPT-4. Résultat : 3 à 6 fois plus rapide que LLMLangstral standard.
-
-### SecurityLingua
-
-Dédiée à la sécurité. Elle détecte les tentatives de jailbreak en compressant le prompt pour révéler les intentions malveillantes cachées. Coût de détection 100 fois inférieur aux solutions classiques.
+> **Note (v0.3.0)** — Les variantes **LLMLangstral-2** (XLM-RoBERTa token classification, 3-6x plus rapide) et **SecurityLingua** (détection de jailbreak) ont été retirées. Aucun équivalent Mistral n'existe à ce jour. Les pipelines d'entraînement restent disponibles sur la branche `legacy/experiments` pour réutilisation future.
 
 ---
 
@@ -89,10 +83,6 @@ Dans un pipeline RAG, compressez les documents récupérés avant de les injecte
 
 Moins de tokens à traiter signifie une réponse plus rapide du LLM. Utile pour les applications temps réel.
 
-### Protection contre les attaques
-
-Avec SecurityLingua, détectez les prompts malveillants avant qu'ils n'atteignent votre LLM principal.
-
 ---
 
 ## Modèles utilisés
@@ -105,7 +95,6 @@ LLMLangstral s'appuie principalement sur des modèles Mistral AI :
 | Compression légère | Ministral 3B | 3 milliards de paramètres |
 | Ressources limitées | Mistral 7B GPTQ | Version quantifiée, moins de 8 Go de VRAM |
 | Ranking de documents | E5-Mistral 7B | Embeddings pour le tri par pertinence |
-| Compression rapide | XLM-RoBERTa | Classification de tokens (LLMLangstral-2) |
 
 ---
 
@@ -119,15 +108,60 @@ LLMLangstral s'appuie principalement sur des modèles Mistral AI :
 
 **Flexible** — Contrôle fin du taux de compression par section du prompt.
 
-**Rapide** — LLMLangstral-2 traite les prompts en millisecondes.
-
 ---
 
 ## Limites
 
 - La compression peut occasionnellement supprimer des informations pertinentes
 - Les modèles de compression nécessitent un GPU pour des performances optimales (CPU possible mais plus lent)
-- LLMLangstral-2 (la version rapide) reste basée sur XLM-RoBERTa, pas sur Mistral
+- La v0.3.0 retire le chemin "compression rapide" (LLMLingua-2 XLM-RoBERTa) — perte de 3-6x en débit par rapport à la v0.2.x. Aucun équivalent Mistral pré-entraîné n'existe à ce jour.
+
+---
+
+## Migration depuis v0.2.x
+
+La v0.3.0 est une release breaking-change. Si vous migrez depuis la 0.2.x :
+
+**1. Retirez ces kwargs du constructeur** `PromptCompressor(...)` :
+
+- `open_api_config`
+- `use_llmlingua2`
+- `use_slingua`
+- `llmlingua2_config`
+
+**2. Retirez ces kwargs de `compress_prompt(...)`** :
+
+- `return_word_label`
+- `word_sep`
+- `label_sep`
+- `token_to_word`
+- `force_tokens`
+- `force_reserve_digit`
+- `drop_consecutive`
+- `chunk_end_tokens`
+
+**3. Classes / symboles supprimés** (ImportError si vous les importiez) :
+
+- `LLMLingua2Compressor` (chemin XLM-RoBERTa)
+- `LLMLANGSTRAL2_MODEL`
+- 9 rankers non-Mistral : `OpenAIRanker`, `VoyageAIRanker`, `CohereRanker`, `BGERanker`, `SentBertRanker`, `JinzaRanker`, `BGEReranker`, `BGELLMEmbedderRanker`, `APIBasedRanker`
+- 4 helpers utils LLMLingua-2-only : `TokenClfDataset`, `is_begin_of_new_word`, `replace_added_token`, `get_pure_token`
+
+**4. Si vous avez besoin de stabilité, restez sur 0.2.x** :
+
+```bash
+pip install "llmlangstral<0.3.0"
+```
+
+**5. Si vous avez besoin du pipeline d'entraînement LLMLingua-2 / SecurityLingua** : checkout la branche `legacy/experiments` du repo GitHub.
+
+Le registre des rankers en v0.3.0 contient exactement 5 clés : `bm25`, `gzip`, `llmlingua`, `longllmlingua`, `mistral`.
+
+**Astuce post-pull** : si vous voyez des `ImportError` étranges après un `git pull` sur un install editable, regénérez le metadata :
+
+```bash
+rm -rf llmlangstral.egg-info && pip install -e ".[dev]"
+```
 
 ---
 

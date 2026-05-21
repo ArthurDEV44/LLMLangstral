@@ -155,29 +155,11 @@ compressed_prompt = llm_lingua.compress_prompt(
 )
 ```
 
-Experiments in LLMLingua and most experiments in LongLLMLingua were conducted in completion mode, whereas chat mode tends to be more sensitive to token-level compression. However, OpenAI has currently disabled GPT-3.5-turbo's completion; you can use GPT-3.5-turbo-instruction or Azure OpenAI service instead.
+Experiments in LLMLangstral and most experiments in LongLLMLangstral were conducted in completion mode, whereas chat mode tends to be more sensitive to token-level compression. However, OpenAI has currently disabled GPT-3.5-turbo's completion; you can use GPT-3.5-turbo-instruction or Azure OpenAI service instead.
 
-**LLMLingua-2**:
+> **Note (v0.3.0)** — Le chemin LLMLingua-2 (XLM-RoBERTa token classification) et SecurityLingua ont été retirés. Aucun équivalent Mistral n'existe pour le moment. Pour réutiliser ces pipelines d'entraînement, voir la branche `legacy/experiments`.
 
-```python
-from llmlangstral import PromptCompressor
-
-compressor = PromptCompressor(
-    model_name="microsoft/llmlingua-2-xlm-roberta-large-meetingbank",
-    use_llmlingua2=True, # Whether to use llmlangstral-2
-)
-compressed_prompt = compressor.compress_prompt(prompt, rate=0.33, force_tokens = ['\n', '?'])
-
-## Or use LLMLingua-2-small model
-llm_lingua = PromptCompressor(
-    model_name="microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank",
-    use_llmlingua2=True, # Whether to use llmlingua-2
-)
-```
-
-And you can find the details of the LLMLingua-2 experiments at [experiments/llmlingua2](./examples/llmlingua2).
-
-## How to use LLMLingua in LangChain and LlamaIndex?
+## How to use LLMLangstral in LangChain and LlamaIndex?
 
 ### Integration with LangChain
 
