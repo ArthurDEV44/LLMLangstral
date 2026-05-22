@@ -61,12 +61,16 @@ class TestMistralCompressor(unittest.TestCase):
     def setUpClass(cls):
         """Initialize compressor with small Mistral model."""
         # Skip if model loading fails (e.g., in resource-constrained CI,
-        # or because SMALL_MODEL is still a placeholder identifier).
+        # or because SMALL_MODEL is still a placeholder / multimodal /
+        # otherwise incompatible with AutoModelForCausalLM).
+        # Model loading is lazy in ModelManager, so we touch .tokenizer to
+        # force the actual download/load inside the try block.
         try:
             cls.compressor = PromptCompressor(
                 model_name=SMALL_MODEL,
                 device_map="cpu",
             )
+            _ = cls.compressor.tokenizer  # triggers lazy load
             cls.model_available = True
         except Exception as e:
             cls.model_available = False
