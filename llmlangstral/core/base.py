@@ -79,9 +79,9 @@ class BaseCompressor(ABC):
     """
     Abstract base class for all compressors.
 
-    Compressors reduce prompt length while preserving semantic meaning.
-    Different implementations use various algorithms (LLMLingua, LLMLingua-2,
-    structured compression, etc.).
+    Compressors reduce prompt length while preserving semantic meaning,
+    using perplexity-driven filtering over a Mistral causal LM
+    (LLMLingua / LongLLMLingua, structured compression, JSON compression).
     """
 
     @abstractmethod
