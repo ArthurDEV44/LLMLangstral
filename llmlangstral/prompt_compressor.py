@@ -9,7 +9,7 @@ from collections import defaultdict
 from typing import Any, List, Optional, Union
 
 import torch
-from transformers.cache_utils import DynamicCache
+from transformers import DynamicCache
 
 from .core import BaseCompressor, CompressionResult, ModelManager
 from .filters import (
@@ -123,36 +123,38 @@ class PromptCompressor(BaseCompressor):
             tokenized_text = self.tokenizer(text, return_tensors="pt")
             input_ids = tokenized_text["input_ids"].to(self.device)
             attention_mask = tokenized_text["attention_mask"].to(self.device)
-        if past_key_values is not None:
-            # Handle both list format (legacy) and DynamicCache format (transformers 4.50+)
-            if isinstance(past_key_values, list):
-                past_length = past_key_values[0][0].shape[2]
-                # Convert list to DynamicCache for newer transformers
-                past_key_values_for_model = DynamicCache.from_legacy_cache(past_key_values)  # pyright: ignore[reportAttributeAccessIssue]
-            else:
-                past_length = past_key_values.get_seq_length()
-                past_key_values_for_model = past_key_values
-        else:
+        # The KV cache flows through token.py as a list of [k, v] tensor pairs
+        # (the historical "legacy" format). transformers 5.x removed
+        # `DynamicCache.from_legacy_cache` / `to_legacy_cache`, so we bridge
+        # here: convert legacy → DynamicCache before the forward pass, then
+        # unpack DynamicCache → legacy on the way out. This keeps the
+        # rolling-window cache surgery in TokenLevelFilter untouched.
+        assert self.model is not None, "Model must be loaded before computing PPL"
+        if past_key_values is None:
             past_length = 0
-            past_key_values_for_model = None
+            cache_for_model = None
+        else:
+            past_length = past_key_values[0][0].shape[-2]
+            cache_for_model = DynamicCache(config=self.model.config)
+            for layer_idx, (k, v) in enumerate(past_key_values):
+                cache_for_model.update(k, v, layer_idx)
         if end is None:
             end = input_ids.shape[1]
         end = min(end, past_length + self.max_position_embeddings)
-        assert self.model is not None, "Model must be loaded before computing PPL"
         assert attention_mask is not None, "attention_mask must be set"
         with torch.no_grad():
             response = self.model(
                 input_ids[:, past_length:end],
                 attention_mask=attention_mask[:, :end],
-                past_key_values=past_key_values_for_model,
+                past_key_values=cache_for_model,
                 use_cache=True,
             )
-            # Convert DynamicCache back to list format for compatibility with rest of code
-            new_past_key_values = response.past_key_values
-            if isinstance(new_past_key_values, DynamicCache):
-                past_key_values = new_past_key_values.to_legacy_cache()  # pyright: ignore[reportAttributeAccessIssue]
-            else:
-                past_key_values = new_past_key_values
+            new_cache: DynamicCache = response.past_key_values
+            past_key_values = [
+                [layer.keys, layer.values]
+                for layer in new_cache.layers
+                if layer.is_initialized
+            ]
 
         shift_logits = response.logits[..., :-1, :].contiguous()  # type: ignore[index]
         shift_labels = input_ids[..., past_length + 1 : end].contiguous()
@@ -714,6 +716,11 @@ class PromptCompressor(BaseCompressor):
                 condition_mode="after",
                 condition_pos_id=self.get_token_length(text) - 1,
             )
+        else:
+            raise ValueError(
+                f"Unknown condition_in_question: {condition_in_question!r}. "
+                "Expected one of 'none', 'before', 'after'."
+            )
 
     # =========================================================================
     # Filtering methods - delegated to filters/ module
@@ -859,10 +866,6 @@ class PromptCompressor(BaseCompressor):
 
             if res is None:
                 return response_word
-            # while l > 0 and not tokenizer.convert_ids_to_tokens(original_input_ids[l]).startswith("_"):
-            #     l -= 1
-            # while r < M - 1 and not tokenizer.convert_ids_to_tokens(original_input_ids[l]).startswith("_"):
-            #     l -= 1
             return tokenizer.decode(original_input_ids[res[0] : res[1]])
 
         response_words = response.split(" ")
