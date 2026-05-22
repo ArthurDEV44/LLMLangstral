@@ -17,7 +17,7 @@ from setuptools import find_packages, setup
 #   X.Y     # Final release
 
 # version.py defines the VERSION and VERSION_SHORT variables.
-# We use exec here so we don't import allennlp whilst setting up.
+# We exec it so we don't import the package while setting up.
 VERSION = {}  # type: ignore
 with open("llmlangstral/version.py", "r") as version_file:
     exec(version_file.read(), VERSION)
@@ -56,7 +56,7 @@ setup(
     long_description_content_type="text/markdown",
     keywords="Prompt Compression, LLMs, Inference Acceleration, Mistral AI, Efficient LLMs",
     license="MIT License",
-    url="https://github.com/sauron/LLMLangstral",
+    url="https://github.com/ArthurDEV44/LLMLangstral",
     classifiers=[
         "Intended Audience :: Science/Research",
         "Development Status :: 3 - Alpha",
@@ -74,6 +74,6 @@ setup(
     },
     install_requires=INSTALL_REQUIRES,
     include_package_data=True,
-    python_requires=">=3.8.0",
+    python_requires=">=3.9.0",
     zip_safe=False,
 )
