@@ -1,0 +1,31 @@
+name = "demo-pipeline"
+layout = "tiled"
+
+[defaults]
+timeout_secs = 900
+
+[[step]]
+id = "impl"
+foreach = ["api", "ui"]
+submit = true
+ready = { pattern = "FLOW_DONE_${item}" }
+capture = { var = "report", lines = 15 }
+
+[step.pane]
+cwd = "/home/arthur/dev/LLMLangstral"
+agent = "claude"
+worktree = "flow/${item}"
+# Le marqueur est décrit par fragments (FLOW / DONE / item) : le prompt échoué
+# dans le scrollback ne doit jamais matcher la barrière `ready` avant que
+# l'agent ait réellement terminé.
+prompt = "Implémente le TODO dans la partie ${item} de ce dépôt, puis committe tes changements sur la branche courante. Quand c'est fait, affiche un court rapport (fichiers touchés, résumé du commit), et termine en imprimant sur une ligne seule le marqueur de complétion obtenu en concaténant avec des underscores ces trois fragments, dans l'ordre : d'abord FLOW, ensuite DONE, enfin ${item}. N'imprime ce marqueur assemblé qu'une seule fois, tout à la fin, jamais avant."
+
+[[step]]
+id = "review"
+needs = ["impl"]
+submit = true
+
+[step.pane]
+cwd = "/home/arthur/dev/LLMLangstral"
+agent = "codex"
+prompt = "Deux agents viennent d'implémenter des TODO sur les branches flow/api et flow/ui. Rapport de l'agent api : ${report.api} --- Rapport de l'agent ui : ${report.ui} --- Examine les diffs de ces deux branches par rapport à main et rends un verdict par branche (APPROVE ou REJECT, avec justification)."
