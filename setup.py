@@ -56,7 +56,7 @@ setup(
     long_description_content_type="text/markdown",
     keywords="Prompt Compression, LLMs, Inference Acceleration, Mistral AI, Efficient LLMs",
     license="MIT License",
-    url="https://github.com/ArthurDEV44/LLMLangstral",
+    url="https://github.com/arthjean/LLMLangstral",
     classifiers=[
         "Intended Audience :: Science/Research",
         "Development Status :: 3 - Alpha",
